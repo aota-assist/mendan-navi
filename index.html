@@ -1115,7 +1115,7 @@ body.app-locked .app-body {
     <div class="logo">📋 比較推奨ナビ</div>
     <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:1px" id="headerAgency">保険代理店アシスト</div>
   </div>
-  <div class="sep"></div><button id="securityChangePasswordBtn" type="button" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 6px;">🔑 変更</button><button id="securityLogoutBtn" type="button" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 8px;">🔒 ロック</button>
+  <div class="sep"></div><button id="securityChangePasswordBtn" type="button" onclick="securityChangePassword()" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 6px;">🔑 変更</button><button id="securityLogoutBtn" type="button" onclick="securityLockApp()" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 8px;">🔒 ロック</button>
   <div class="customer-badge" id="headerCustomer">顧客未選択</div>
 </header>
 
@@ -1860,7 +1860,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.37";
+const APP_VERSION = "40.38";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -2133,7 +2133,12 @@ function securityChangePassword() {
   location.reload();
 }
 function addSecurityLogoutButton() {
-  if (!APP_SECURITY_ENABLED || document.getElementById("securityLogoutBtn")) return;
+  if (!APP_SECURITY_ENABLED) return;
+  const existingChangeBtn = document.getElementById("securityChangePasswordBtn");
+  const existingLogoutBtn = document.getElementById("securityLogoutBtn");
+  if (existingChangeBtn) existingChangeBtn.onclick = securityChangePassword;
+  if (existingLogoutBtn) existingLogoutBtn.onclick = securityLockApp;
+  if (existingChangeBtn && existingLogoutBtn) return;
   const header = document.querySelector(".app-header .sep");
   if (!header) return;
   const changeBtn = document.createElement("button");
@@ -2217,7 +2222,7 @@ function checkLocalStorageWritable() {
     const storedVer = localStorage.getItem(STORED_VERSION_KEY);
     if (storedVer !== APP_VERSION) {
       safeSaveLocalStorage(STORED_VERSION_KEY, APP_VERSION);
-      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（パスワード救済安全版・顧客データは保持）");
+      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（右上ボタン接続修正版・顧客データは保持）");
     }
   } catch(e) {
     console.warn("localStorageが利用できない環境です。通常モードで開いてください。", e);
