@@ -1,9 +1,9 @@
 
-<!-- saved from url=(0201)file:///C:/Users/sjnka/Documents/Codex/2026-06-11/files-mentioned-by-the-user-v38/outputs/%E9%9D%A2%E8%AB%87%E3%83%8A%E3%83%93_v38_2_%E9%A1%A7%E5%AE%A2%E5%8C%BA%E5%88%86%E8%BF%BD%E5%8A%A0%E7%89%88.html -->
+<!DOCTYPE html>
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較推奨ナビ v40.20｜長期平準定期保険重複修正・ひまわり生命保持版</title>
+<title>比較推奨ナビ v40.37｜パスワード救済安全版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -1006,9 +1006,108 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
   }
 }
 
+
+/* ── v40.28 セキュリティログイン ── */
+body.app-locked .app-header,
+body.app-locked .app-body {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+#securityLoginOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20000;
+  background: rgba(42, 60, 48, .58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+.security-login-box {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border-radius: 18px;
+  box-shadow: 0 12px 50px rgba(0,0,0,.28);
+  padding: 28px 26px;
+  text-align: center;
+  border: 1px solid var(--green-mid);
+}
+.security-login-box h2 {
+  font-size: 19px;
+  color: var(--green-dark);
+  margin: 0 0 8px;
+}
+.security-login-box p {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+.security-login-box input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 16px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+.security-login-box input:focus {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(61,122,92,.12);
+  outline: none;
+}
+.security-login-box button {
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  background: var(--green);
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+}
+#securityLoginError {
+  min-height: 18px;
+  font-size: 12px;
+  color: #b91c1c;
+  text-align: left;
+}
+.security-login-note {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 12px;
+  line-height: 1.6;
+}
+
 </style>
+<script>
+// クリーン配布版：この配布ファイルを初めて開いた時だけ、面談ナビ関連の保存データを削除します。
+// 旧クリーン版の「unknown_done」キーが残っていても、必ず初回初期化されるように固定IDを分けています。
+(function(){
+  var CLEAN_ID = "v40_37_static_2026_07_09";
+  var CLEAN_KEY = "ins_nav_clean_distribution_" + CLEAN_ID + "_done";
+  try {
+    if (localStorage.getItem(CLEAN_KEY) === "1") return;
+    var prefixes = ["ins_nav_", "mendan_", "menda_navi_"];
+    var remove = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && prefixes.some(function(prefix){ return k.indexOf(prefix) === 0; })) remove.push(k);
+    }
+    remove.forEach(function(k){ localStorage.removeItem(k); });
+    localStorage.setItem(CLEAN_KEY, "1");
+  } catch(e) {
+    console.warn("クリーン配布版の初期化に失敗しました。", e);
+  }
+})();
+</script>
 </head>
-<body>
+<body class="">
 
 <!-- HEADER -->
 <header class="app-header">
@@ -1016,7 +1115,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     <div class="logo">📋 比較推奨ナビ</div>
     <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:1px" id="headerAgency">保険代理店アシスト</div>
   </div>
-  <div class="sep"></div>
+  <div class="sep"></div><button id="securityChangePasswordBtn" type="button" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 6px;">🔑 変更</button><button id="securityLogoutBtn" type="button" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 8px;">🔒 ロック</button>
   <div class="customer-badge" id="headerCustomer">顧客未選択</div>
 </header>
 
@@ -1032,24 +1131,24 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     <span class="nav-icon">💬</span> 質問フロー
     <span class="nav-num">2</span>
   </div>
-  <div class="nav-item" onclick="showPage(&#39;recommendPage&#39;)" id="nav-recommendPage">
+  <div class="nav-item" onclick="showPage('recommendPage')" id="nav-recommendPage">
     <span class="nav-icon">💡</span> 提案・結果
     <span class="nav-num">3</span>
   </div>
-  <div class="nav-item" onclick="showPage(&#39;recordPage&#39;)" id="nav-recordPage">
+  <div class="nav-item" onclick="showPage('recordPage')" id="nav-recordPage">
     <span class="nav-icon">🎙</span> 録音・整文
     <span class="nav-num">4</span>
   </div>
-  <div class="nav-item" onclick="showPage(&#39;signPage&#39;)" id="nav-signPage">
+  <div class="nav-item" onclick="showPage('signPage')" id="nav-signPage">
     <span class="nav-icon">✅</span> 確認・署名
     <span class="nav-num">5</span>
   </div>
   <div class="nav-divider"></div>
-  <div class="nav-item" onclick="if(requireAgentConfirm(&#39;意向確認書の生成&#39;)){generateDocument();showPage(&#39;printPage&#39;)}" id="nav-printPage">
+  <div class="nav-item" onclick="generateDocumentFromSignPage()" id="nav-printPage">
     <span class="nav-icon">🖨</span> 意向確認書
   </div>
   <div class="nav-divider"></div>
-  <div class="nav-item" onclick="showPage(&#39;productPage&#39;)" id="nav-productPage">
+  <div class="nav-item" onclick="showPage('productPage')" id="nav-productPage">
     <span class="nav-icon">📦</span> 商品管理
   </div>
   <div class="nav-divider"></div>
@@ -1057,7 +1156,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
   <div class="nav-item" onclick="exportAllData()" title="全顧客・全面談履歴を1ファイルにバックアップ（推奨）" style="color:var(--green-dark)">
     <span class="nav-icon">💾</span> <span style="font-size:12px">全顧客バックアップ</span>
   </div>
-  <div class="nav-item" onclick="el(&#39;importAllFile&#39;).click()" title="バックアップファイルから全顧客を復元">
+  <div class="nav-item" onclick="el('importAllFile').click()" title="バックアップファイルから全顧客を復元">
     <span class="nav-icon">📂</span> <span style="font-size:12px">全顧客リストア</span>
   </div>
   <input type="file" id="importAllFile" accept=".json" class="hidden" onchange="importAllData(this)">
@@ -1066,7 +1165,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
   <div class="nav-item" onclick="exportData()" title="選択中の顧客データをファイルに書き出す">
     <span class="nav-icon">📤</span> <span style="font-size:12px">1件エクスポート</span>
   </div>
-  <div class="nav-item" onclick="el(&#39;importFile&#39;).click()" title="保存済みファイルを読み込む">
+  <div class="nav-item" onclick="el('importFile').click()" title="保存済みファイルを読み込む">
     <span class="nav-icon">📥</span> <span style="font-size:12px">1件インポート</span>
   </div>
   <input type="file" id="importFile" accept=".json" class="hidden" onchange="importData(this)">
@@ -1099,7 +1198,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     <div class="card" style="padding:12px 16px;margin-bottom:10px;background:var(--green-light);border:1.5px solid var(--green-mid)">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <span style="font-size:13px;font-weight:700;color:var(--green-dark);white-space:nowrap">🏢 代理店名</span>
-        <input id="agencyNameInput" value="" placeholder="例：保険代理店アシスト" style="flex:1;min-width:160px;padding:6px 12px;border:1.5px solid var(--green);border-radius:8px;font-size:13px;font-family:inherit">
+        <input id="agencyNameInput" placeholder="例：保険代理店アシスト" style="flex:1;min-width:160px;padding:6px 12px;border:1.5px solid var(--green);border-radius:8px;font-size:13px;font-family:inherit">
         <button class="btn btn-primary" style="padding:6px 14px;font-size:13px" onclick="saveAgencyName()">保存</button>
       </div>
     </div>
@@ -1114,34 +1213,14 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     </details>
 
     <!-- ダッシュボード -->
-    <div id="dashboardPanel" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-    <div class="dash-card " onclick="filterCustomerList(&#39;all&#39;)" title="登録顧客数一覧を表示（クリックで絞り込み）">
-      <div class="dash-num ">0</div>
-      <div class="dash-label">登録顧客数</div>
-    </div>
-  
-    <div class="dash-card " onclick="filterCustomerList(&#39;contracted&#39;)" title="成約件数一覧を表示（クリックで絞り込み）">
-      <div class="dash-num alert">0</div>
-      <div class="dash-label">成約件数</div>
-    </div>
-  
-    <div class="dash-card " onclick="filterCustomerList(&#39;followup&#39;)" title="次回提案あり一覧を表示（クリックで絞り込み）">
-      <div class="dash-num warn">0</div>
-      <div class="dash-label">次回提案あり</div>
-    </div>
-  
-    <div class="dash-card " onclick="filterCustomerList(&#39;overdue&#39;)" title="期限切れ一覧を表示（クリックで絞り込み）">
-      <div class="dash-num danger">0</div>
-      <div class="dash-label">期限切れ</div>
-    </div>
-  </div>
+    <div id="dashboardPanel" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px"></div>
 
     <!-- 顧客リスト -->
     <div class="card" style="margin-bottom:16px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
         <div class="card-title" style="margin-bottom:0">📋 顧客リスト</div>
         <div style="display:flex;gap:8px;align-items:center">
-          <input id="customerSearch" placeholder="🔍 名前で検索..." oninput="el(&#39;dashFilterState&#39;).value=&#39;&#39;;renderCustomerList()" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;width:160px">
+          <input id="customerSearch" placeholder="🔍 名前で検索..." oninput="el('dashFilterState').value='';renderCustomerList()" style="padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;width:160px">
           <input type="hidden" id="dashFilterState" value="">
           <button class="btn btn-ghost btn-sm" onclick="goCustomerPage(true, true)">＋ 新規追加</button>
         </div>
@@ -1165,7 +1244,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
   <label>生年月日 <span style="font-size:11px;color:var(--text-light);font-weight:400">（例: 1968-10-23）</span></label>
   <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
     <input id="birth" type="text" placeholder="1968-10-23" style="flex:1;min-width:140px" oninput="onBirthTyping(this.value)" onchange="onBirthInput(this.value, true)" onblur="onBirthInput(this.value, true)" maxlength="10">
-    <input id="birthPicker" type="date" style="padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;min-height:44px;min-width:44px" onchange="el(&#39;birth&#39;).value=this.value;onBirthInput(this.value)" title="カレンダーで選択">
+    <input id="birthPicker" type="date" style="padding:9px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;min-height:44px;min-width:44px" onchange="el('birth').value=this.value;onBirthInput(this.value)" title="カレンダーで選択">
   </div>
 </div>
         <div class="grid2">
@@ -1208,7 +1287,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
         </div>
         <div class="btns">
           <button class="btn btn-primary" onclick="saveCustomer()">💾 保存</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCurrentCustomer()">🗑 この顧客を削除</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCurrentCustomer()">🗑 選択中の顧客を削除</button>
         </div>
       </div>
 
@@ -1276,7 +1355,28 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     <div class="section-sub">選択された保障のみ表示します。未選択の保障は意向確認書に出しません。</div>
     <div id="elderlyRecommendNotice" class="hidden note-box danger" style="margin-bottom:12px">
       ⛔ <b>高齢募集ルール：初回面談のため成約不可</b><br>
-      70歳以上のお客様は複数回面談・上席確認が必要です。「成約」は選択できません。
+      70歳以上のお客様の初回面談は原則として複数回面談が必要です。ただし、満69歳以下のご家族等が同席し、説明内容と申込意向を確認している場合のみ、結果欄で「成約」を選択できます。同席者氏名・続柄・生年月日の記録が必要です。
+    </div>
+    <div id="elderlyCompanionCard" class="card hidden" style="border:2px solid #fca5a5;background:#fff7f7;margin-bottom:12px">
+      <div class="card-title">👪 高齢募集・同席者確認（初回成約時は必須）</div>
+      <div class="note-box warn" style="font-size:12px;margin-bottom:12px">
+        70歳以上のお客様が初回面談で本日成約を希望される場合、<b>満69歳以下のご家族等</b>の同席確認を記録してください。要件を満たさない場合は「成約」は保存できません。
+      </div>
+      <div class="grid3">
+        <div class="field"><label>同席者氏名</label><input id="elderlyCompanionName" placeholder="例：多賀 太郎" oninput="onElderlyCompanionInput()"></div>
+        <div class="field"><label>続柄</label><input id="elderlyCompanionRelation" placeholder="例：長男・長女・配偶者" oninput="onElderlyCompanionInput()"></div>
+        <div class="field"><label>同席者 生年月日</label><input id="elderlyCompanionBirth" type="date" onchange="onElderlyCompanionInput()" oninput="onElderlyCompanionInput()"></div>
+      </div>
+      <div id="elderlyCompanionAgeBox" class="note-box info" style="font-size:12px;margin-bottom:10px">同席者の生年月日を入力すると、年齢を自動判定します。</div>
+      <label class="check-item" onclick="toggleElderlyCompanionCheck('elderlyCompanionExplainCheck')" style="background:#fff">
+        <input type="checkbox" id="elderlyCompanionExplainCheck" onchange="onElderlyCompanionInput()">
+        <span>同席者へ商品内容・重要事項を説明しました</span>
+      </label>
+      <label class="check-item" onclick="toggleElderlyCompanionCheck('elderlyCompanionIntentCheck')" style="background:#fff">
+        <input type="checkbox" id="elderlyCompanionIntentCheck" onchange="onElderlyCompanionInput()">
+        <span>同席者もお客様の申込意向を確認しました</span>
+      </label>
+      <div id="elderlyCompanionStatus" class="note-box danger" style="font-size:12px;margin-top:10px">未確認：同席者情報と確認チェックを入力してください。</div>
     </div>
     <div id="carryOverBanner" class="hidden note-box info" style="margin-bottom:12px">
       🔄 <b>引き継ぎ面談モード</b>：前回成約済みの保障は「既契約参照」として意向確認書の冒頭に表示されます。今回の面談で新たに提案する保障のみ選択してください。<br>
@@ -1289,7 +1389,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     <div class="btns">
       <button class="btn btn-primary" onclick="saveInterview()">💾 保存</button>
       <button class="btn btn-accent btn-sm" onclick="addMoreNeeds()" style="font-size:13px">＋ 保障を追加・変更する</button>
-      <button class="btn btn-ghost" onclick="showPage(&#39;recordPage&#39;)">次へ：録音・整文 →</button>
+      <button class="btn btn-ghost" onclick="showPage('recordPage')">次へ：録音・整文 →</button>
     </div>
     <!-- 次回面談日程（見送り・次回提案時に入力） -->
     <div id="nextMeetingQuickCard" class="card" style="margin-top:8px">
@@ -1337,14 +1437,15 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
       <!-- 定型文チップ -->
       <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px">
         <span style="font-size:11px;color:var(--text-light);align-self:center;white-space:nowrap">よく使う▶</span>
-        <button class="chip-btn" onclick="insertChip(&#39;cancer_worry&#39;)">😰 がん不安</button>
-        <button class="chip-btn" onclick="insertChip(&#39;medical_worry&#39;)">🏥 入院不安</button>
-        <button class="chip-btn" onclick="insertChip(&#39;income_worry&#39;)">💼 就業不能</button>
-        <button class="chip-btn" onclick="insertChip(&#39;asset_interest&#39;)">📈 資産形成</button>
-        <button class="chip-btn" onclick="insertChip(&#39;elderly_care&#39;)">🤝 介護不安</button>
-        <button class="chip-btn" onclick="insertChip(&#39;compare_both&#39;)">⚖️ 両社比較</button>
-        <button class="chip-btn" onclick="insertChip(&#39;next_family&#39;)">👨‍👩‍👧 家族相談</button>
-        <button class="chip-btn" onclick="insertChip(&#39;declined&#39;)">⏸ 見送り</button>
+        <button class="chip-btn" onclick="insertChip('cancer_worry')">😰 がん不安</button>
+        <button class="chip-btn" onclick="insertChip('medical_worry')">🏥 入院不安</button>
+        <button class="chip-btn" onclick="insertChip('death_worry')">🛡️ 死亡保障</button>
+        <button class="chip-btn" onclick="insertChip('income_worry')">💼 就業不能</button>
+        <button class="chip-btn" onclick="insertChip('asset_interest')">📈 資産形成</button>
+        <button class="chip-btn" onclick="insertChip('elderly_care')">🤝 介護不安</button>
+        <button class="chip-btn" onclick="insertChip('compare_both')">⚖️ 両社比較</button>
+        <button class="chip-btn" onclick="insertChip('next_family')">👨‍👩‍👧 家族相談</button>
+        <button class="chip-btn" onclick="insertChip('declined')">⏸ 見送り</button>
       </div>
       <textarea id="intentMemo" placeholder="例：がん保険について既存契約では上皮内がんが対象外で不安。ひまわりとソニー生命を比較して保険料・免除条件を確認。一時金重視でひまわりを選んだ。" style="width: 100%; box-sizing: border-box; min-height: 240px; height: 240px; overflow-y: auto; resize: vertical; display: block;" oninput="clearTimeout(this._t);this._t=setTimeout(autoSave,600)"></textarea>
     </div>
@@ -1384,11 +1485,11 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
       <div style="margin-bottom:10px">
         <div style="font-size:11px;font-weight:700;color:var(--text-mid);margin-bottom:5px">締め文：</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <button class="closing-btn" id="closing-contracted" onclick="selectClosing(&#39;contracted&#39;)" title="以上の内容を確認のうえ、お客様ご自身の意思によりお申し込みを希望されました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #059669;font-size:12px;font-weight:700;cursor:pointer;background:#d1fae5;color:#065f46">✅ 成約</button>
-          <button class="closing-btn" id="closing-pending" onclick="selectClosing(&#39;pending&#39;)" title="以上の内容にご納得いただき、次回手続きに進むご意向を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #1d4ed8;font-size:12px;font-weight:700;cursor:pointer;background:#dbeafe;color:#1e40af">📅 次回手続き</button>
-          <button class="closing-btn" id="closing-thinking" onclick="selectClosing(&#39;thinking&#39;)" title="以上の説明内容を踏まえ、ご家族と相談のうえ改めて検討されるご意向を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #d97706;font-size:12px;font-weight:700;cursor:pointer;background:#fef3c7;color:#92400e">💬 検討中</button>
-          <button class="closing-btn" id="closing-declined" onclick="selectClosing(&#39;declined&#39;)" title="今回は説明内容を確認いただいたうえで、現時点ではお申し込みを見送るご意向を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #9ca3af;font-size:12px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#4b5563">⏸ 見送り</button>
-          <button class="closing-btn" id="closing-info" onclick="selectClosing(&#39;info&#39;)" title="今回はお客様の関心事項と必要保障を整理し、今後の検討事項を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--text-mid)">📋 説明のみ</button>
+          <button class="closing-btn" id="closing-contracted" onclick="selectClosing('contracted')" title="以上の内容を確認のうえ、お客様ご自身の意思によりお申し込みを希望されました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #059669;font-size:12px;font-weight:700;cursor:pointer;background:#d1fae5;color:#065f46">✅ 成約</button>
+          <button class="closing-btn" id="closing-pending" onclick="selectClosing('pending')" title="以上の内容にご納得いただき、次回手続きに進むご意向を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #1d4ed8;font-size:12px;font-weight:700;cursor:pointer;background:#dbeafe;color:#1e40af">📅 次回手続き</button>
+          <button class="closing-btn" id="closing-thinking" onclick="selectClosing('thinking')" title="以上の説明内容を踏まえ、ご家族と相談のうえ改めて検討されるご意向を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #d97706;font-size:12px;font-weight:700;cursor:pointer;background:#fef3c7;color:#92400e">💬 検討中</button>
+          <button class="closing-btn" id="closing-declined" onclick="selectClosing('declined')" title="今回は説明内容を確認いただいたうえで、現時点ではお申し込みを見送るご意向を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid #9ca3af;font-size:12px;font-weight:700;cursor:pointer;background:#f3f4f6;color:#4b5563">⏸ 見送り</button>
+          <button class="closing-btn" id="closing-info" onclick="selectClosing('info')" title="今回はお客様の関心事項と必要保障を整理し、今後の検討事項を確認しました。" style="padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);font-size:12px;font-weight:700;cursor:pointer;background:var(--surface2);color:var(--text-mid)">📋 説明のみ</button>
         </div>
         <div id="closingReason" style="font-size:11px;color:var(--text-mid);margin-top:4px;min-height:14px"></div>
         <div id="closingPreview" style="font-size:11px;color:var(--text-light);margin-top:2px;font-style:italic;min-height:14px"></div>
@@ -1398,10 +1499,10 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
       <details style="margin-bottom:8px">
         <summary style="font-size:11px;color:var(--text-light);cursor:pointer;padding:3px 0">▶ 文体を変換する</summary>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">
-          <button class="chip-btn" onclick="adjustTone(&#39;short&#39;)">✂️ 短く</button>
-          <button class="chip-btn" onclick="adjustTone(&#39;soft&#39;)">🌸 柔らかく</button>
-          <button class="chip-btn" onclick="adjustTone(&#39;formal&#39;)">🎩 丁寧に</button>
-          <button class="chip-btn" onclick="adjustTone(&#39;friendly&#39;)">😊 読みやすく</button>
+          <button class="chip-btn" onclick="adjustTone('short')">✂️ 短く</button>
+          <button class="chip-btn" onclick="adjustTone('soft')">🌸 柔らかく</button>
+          <button class="chip-btn" onclick="adjustTone('formal')">🎩 丁寧に</button>
+          <button class="chip-btn" onclick="adjustTone('friendly')">😊 読みやすく</button>
         </div>
       </details>
 
@@ -1419,7 +1520,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
 
     <div class="btns" style="margin-top:16px">
       <button class="btn btn-primary" onclick="saveInterview()">💾 保存</button>
-      <button class="btn btn-ghost" onclick="showPage(&#39;signPage&#39;)">次へ：確認・署名 →</button>
+      <button class="btn btn-ghost" onclick="showPage('signPage')">次へ：確認・署名 →</button>
     </div>
   </section>
 
@@ -1460,6 +1561,10 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
         <input type="checkbox" id="checkElderly">
         <span>⑤【高齢対応】複数回面談を実施していることを確認した</span>
       </label>
+      <label id="familyAttendanceRow" class="check-item hidden" onclick="toggleCheck(this)">
+        <input type="checkbox" id="checkFamilyAttendance">
+        <span>⑤【高齢対応】満69歳以下のご家族等が同席し、説明内容と申込意向を確認した</span>
+      </label>
       <!-- 高齢者・比較推奨チェック -->
       <input type="checkbox" id="checkElderlyMulti" style="display:none">
       <label id="elderlyMultiMeetRow" style="display:none">
@@ -1473,13 +1578,13 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
       <div class="grid2">
         <div>
           <div class="small" style="margin-bottom:6px;font-weight:700;color:var(--text-mid)">お客様サイン</div>
-          <canvas id="customerSign" width="300" height="140" style="width: 300px; height: 140px; touch-action: none;"></canvas>
-          <button class="btn btn-ghost btn-sm mt8" onclick="clearCanvas(&#39;customerSign&#39;)">🗑 消す</button>
+          <canvas id="customerSign" style="width: 300px; height: 140px; touch-action: none;"></canvas>
+          <button class="btn btn-ghost btn-sm mt8" onclick="clearCanvas('customerSign')">🗑 消す</button>
         </div>
         <div>
           <div class="small" style="margin-bottom:6px;font-weight:700;color:var(--text-mid)">募集人サイン</div>
-          <canvas id="agentSign" width="300" height="140" style="width: 300px; height: 140px; touch-action: none;"></canvas>
-          <button class="btn btn-ghost btn-sm mt8" onclick="clearCanvas(&#39;agentSign&#39;)">🗑 消す</button>
+          <canvas id="agentSign" style="width: 300px; height: 140px; touch-action: none;"></canvas>
+          <button class="btn btn-ghost btn-sm mt8" onclick="clearCanvas('agentSign')">🗑 消す</button>
         </div>
       </div>
 
@@ -1533,8 +1638,8 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
     </div>
 
     <div class="btns">
-      <button class="btn btn-primary" onclick="if(requireAgentConfirm(&#39;保存&#39;))saveInterview()">💾 保存</button>
-      <button class="btn btn-accent" onclick="if(requireAgentConfirm(&#39;意向確認書の生成&#39;)){generateDocument();showPage(&#39;printPage&#39;)}">🖨 意向確認書を生成</button>
+      <button class="btn btn-primary" onclick="if(requireAgentConfirm('保存'))saveInterview()">💾 保存</button>
+      <button class="btn btn-accent" onclick="generateDocumentFromSignPage()">🖨 意向確認書を生成</button>
     </div>
   </section>
 
@@ -1561,11 +1666,11 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
         <option value="cancer">がん保険</option>
         <option value="medical">医療保険</option>
         <option value="death">死亡保障</option>
-        <option value="income">収入保障・就業不能</option>
-        <option value="asset">資産形成・変額</option>
-        <option value="retirement">老後資金・年金</option>
+        <option value="income">就業不能・生活保障</option>
+        <option value="asset">資産形成・運用</option>
+        <option value="retirement">老後・年金</option>
         <option value="care">介護・認知症</option>
-        <option value="corporate_only">法人専用</option>
+        <option value="corporate_only">法人向け</option>
       </select>
       <select id="productFilterStatus" onchange="renderProductList()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
         <option value="">全ステータス</option>
@@ -1609,18 +1714,18 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
               <option value="cancer">がん保険</option>
               <option value="medical">医療保険</option>
               <option value="death">死亡保障</option>
-              <option value="income">収入保障・就業不能</option>
-              <option value="asset">資産形成・変額</option>
-              <option value="retirement">老後資金・年金</option>
+              <option value="income">就業不能・生活保障</option>
+              <option value="asset">資産形成・運用</option>
+              <option value="retirement">老後・年金</option>
               <option value="care">介護・認知症</option>
-              <option value="corporate_only">法人専用</option>
+              <option value="corporate_only">法人向け</option>
             </select>
           </div>
           <div style="flex:1;min-width:140px">
             <label style="font-size:13px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:5px">ステータス</label>
             <select id="editProductStatus" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
               <option value="active">✅ 販売中</option>
-              <option value="check" selected="">⚠ 要確認</option>
+              <option value="check">⚠ 要確認</option>
               <option value="stopped">❌ 販売停止</option>
               <option value="delete" id="editStatusDeleteOption" style="color:#dc2626">🗑 削除する</option>
             </select>
@@ -1636,11 +1741,11 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
           <label style="font-size:13px;font-weight:600;color:var(--text-mid);display:block;margin-bottom:5px">詳細説明 <span style="font-size:11px;font-weight:400">（商品詳細モーダルに表示）</span></label>
           <!-- ツールバー -->
           <div style="display:flex;gap:4px;flex-wrap:wrap;padding:6px 8px;background:#f5f2ed;border:1.5px solid var(--border);border-bottom:none;border-radius:8px 8px 0 0">
-            <button type="button" onclick="detailFmt(&#39;bold&#39;)" title="太字" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-weight:700;font-size:13px">B</button>
-            <button type="button" onclick="detailFmt(&#39;h3&#39;)" title="見出し" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px">見出し</button>
-            <button type="button" onclick="detailFmt(&#39;bullet&#39;)" title="箇条書き" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:13px">・箇条書き</button>
-            <button type="button" onclick="detailFmt(&#39;warn&#39;)" title="⚠注意点" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px">⚠ 注意</button>
-            <button type="button" onclick="detailFmt(&#39;br&#39;)" title="改行" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px">改行</button>
+            <button type="button" onclick="detailFmt('bold')" title="太字" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-weight:700;font-size:13px">B</button>
+            <button type="button" onclick="detailFmt('h3')" title="見出し" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px">見出し</button>
+            <button type="button" onclick="detailFmt('bullet')" title="箇条書き" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:13px">・箇条書き</button>
+            <button type="button" onclick="detailFmt('warn')" title="⚠注意点" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px">⚠ 注意</button>
+            <button type="button" onclick="detailFmt('br')" title="改行" style="padding:4px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-size:12px">改行</button>
             <span style="flex:1"></span>
             <button type="button" onclick="toggleDetailMode()" id="detailModeBtn" style="padding:4px 9px;border:1px solid var(--green);border-radius:5px;background:var(--green-light);cursor:pointer;font-size:11px;color:var(--green-dark)">HTMLを直接編集</button>
           </div>
@@ -1698,15 +1803,12 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
       <button class="btn btn-primary" onclick="savePrintDocumentEdit()" id="printEditSaveBtn" style="display:none">💾 修正内容を保存</button>
       <button class="btn btn-ghost btn-sm" onclick="clearPrintDocumentEdit()" title="編集済みの保存内容を破棄し、現在の入力内容から作り直します">編集保存を破棄</button>
       <button class="btn btn-primary" onclick="printDocumentGuarded()">🖨 印刷 / PDF保存</button>
-      <button class="btn btn-ghost" onclick="showPage(&#39;signPage&#39;)">← 確認・署名へ戻る</button>
+      <button class="btn btn-ghost" onclick="showPage('signPage')">← 確認・署名へ戻る</button>
     </div>
     <div id="printEditNotice" class="note-box info no-print" style="display:none;margin-bottom:12px">
       ✏️ 修正モード中です。本文を直接編集できます。お客様署名・募集人署名欄は保護しています。編集後は必ず「修正内容を保存」を押してください。
     </div>
-    <div id="printArea" class="printdoc">
-      <h2>意向確認書</h2>
-      <p>まだ生成されていません。「意向確認書を生成」ボタンを押してください。</p>
-    </div>
+    <div id="printArea" class="printdoc"><h2>意向確認書</h2><p>まだ生成されていません。「意向確認書を生成」ボタンを押してください。</p></div>
   </section>
 
 </main>
@@ -1719,13 +1821,13 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
   <button class="mobile-nav-item" onclick="openWizardPage()" id="mnav-wizard">
     <span class="mn-icon">💬</span><span>質問</span>
   </button>
-  <button class="mobile-nav-item" onclick="showPage(&#39;recommendPage&#39;)" id="mnav-recommend">
+  <button class="mobile-nav-item" onclick="showPage('recommendPage')" id="mnav-recommend">
     <span class="mn-icon">💡</span><span>提案</span>
   </button>
-  <button class="mobile-nav-item" onclick="showPage(&#39;signPage&#39;)" id="mnav-sign">
+  <button class="mobile-nav-item" onclick="showPage('signPage')" id="mnav-sign">
     <span class="mn-icon">✅</span><span>署名</span>
   </button>
-  <button class="mobile-nav-item" onclick="if(requireAgentConfirm(&#39;意向確認書の生成&#39;)){generateDocument();showPage(&#39;printPage&#39;)}" id="mnav-print">
+  <button class="mobile-nav-item" onclick="generateDocumentFromSignPage()" id="mnav-print">
     <span class="mn-icon">🖨</span><span>確認書</span>
   </button>
 </nav>
@@ -1749,8 +1851,7 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
       <h3>📋 面談履歴を選択</h3>
       <button class="modal-close" onclick="closeHistoryModal()">✕</button>
     </div>
-    <div class="modal-body" id="historyModalBody">
-    </div>
+    <div class="modal-body" id="historyModalBody"></div>
   </div>
 </div>
 
@@ -1759,8 +1860,342 @@ button { -webkit-tap-highlight-color: transparent; cursor: pointer; }
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.20";
+const APP_VERSION = "40.37";
 const STORED_VERSION_KEY = "ins_nav_app_version";
+
+
+// ──────────────── セキュリティ設定（初回設定方式） ────────────────
+// 注意：HTML単体配布のため、専門的な攻撃への完全な防御ではありません。
+// 目的：端末内localStorageに保存される顧客・面談データを平文のまま残さないこと、起動時の簡易ロックを行うこと。
+// v40.29：HTML内に固定パスワードを書かず、初回起動時に利用者がパスワードを設定します。
+const APP_SECURITY_ENABLED = true;
+const APP_SECURITY_PROFILE_KEY = "ins_nav_security_profile_v2"; // 暗号化しない管理情報（ハッシュのみ保存）
+const APP_SECURITY_SESSION_KEY = "ins_nav_security_unlocked_v40_29";
+const APP_SECURITY_SEED_KEY = "ins_nav_security_seed_v40_29";
+const APP_ENC_PREFIX = "ENCv2:";
+const APP_OLD_ENC_PREFIX = "ENCv1:"; // v40.28互換読み取り用
+
+// ──────────────── v40.37 パスワード救済方針 ────────────────
+// HTML内に共通の管理者救済パスワードは置きません。
+// パスワードを忘れた場合は、端末内の暗号化データを初期化し、新しいパスワードを設定します。
+// 復旧は、事前に保存したバックアップファイルからのリストアで行います。
+
+function _secHash(str) {
+  let h = 2166136261 >>> 0;
+  str = String(str || "");
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
+}
+function _secHashHex(str) {
+  return ("00000000" + _secHash(str).toString(16)).slice(-8);
+}
+function _secRandomSalt() {
+  try {
+    const arr = new Uint32Array(4);
+    crypto.getRandomValues(arr);
+    return Array.from(arr).map(n => ("00000000" + n.toString(16)).slice(-8)).join("");
+  } catch(e) {
+    return String(Date.now()) + String(Math.random()).slice(2);
+  }
+}
+function _secDeriveSeed(password, salt) {
+  // 同期処理でlocalStorageを暗号化するための簡易鍵生成。
+  // パスワードそのものは保存しません。
+  let seed = _secHash(String(salt || "") + "|" + String(password || "") + "|ins-nav-v2");
+  for (let i = 0; i < 2500; i++) {
+    seed = _secHash(seed + "|" + salt + "|" + password + "|" + i);
+  }
+  return seed >>> 0;
+}
+function _secVerifier(seed, salt) {
+  return _secHashHex(String(seed) + "|" + String(salt || "") + "|verify");
+}
+function _secPrng(seed) {
+  let x = seed >>> 0;
+  return function() {
+    x = (Math.imul(1664525, x) + 1013904223) >>> 0;
+    return (x >>> 16) & 255;
+  };
+}
+function _secBase64EncodeUtf8(bytes) {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function _secBase64DecodeBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function _secCurrentSeed() {
+  const s = sessionStorage.getItem(APP_SECURITY_SEED_KEY);
+  const n = Number(s || 0);
+  return Number.isFinite(n) && n > 0 ? (n >>> 0) : 0;
+}
+function _secEncryptWithSeed(plain, seed) {
+  const text = String(plain ?? "");
+  if (text.startsWith(APP_ENC_PREFIX) || text.startsWith(APP_OLD_ENC_PREFIX)) return text;
+  const rnd = _secPrng(seed >>> 0);
+  const bytes = new TextEncoder().encode(text);
+  for (let i = 0; i < bytes.length; i++) bytes[i] ^= rnd();
+  return APP_ENC_PREFIX + _secBase64EncodeUtf8(bytes);
+}
+function _secDecryptWithSeed(stored, seed, prefix) {
+  const text = String(stored ?? "");
+  const pfx = prefix || APP_ENC_PREFIX;
+  const rnd = _secPrng(seed >>> 0);
+  const bytes = _secBase64DecodeBytes(text.slice(pfx.length));
+  for (let i = 0; i < bytes.length; i++) bytes[i] ^= rnd();
+  return new TextDecoder().decode(bytes);
+}
+function _secEncryptText(plain) {
+  if (!APP_SECURITY_ENABLED) return String(plain ?? "");
+  const seed = _secCurrentSeed();
+  // ログイン前はアプリ本体データを書き込まない。バージョン等の除外キーは通常保存されます。
+  if (!seed) return String(plain ?? "");
+  return _secEncryptWithSeed(plain, seed);
+}
+function _secDecryptText(stored) {
+  const text = String(stored ?? "");
+  if (!APP_SECURITY_ENABLED) return text;
+  if (!text.startsWith(APP_ENC_PREFIX) && !text.startsWith(APP_OLD_ENC_PREFIX)) return text;
+  const seed = _secCurrentSeed();
+  if (!seed) return "";
+  try {
+    if (text.startsWith(APP_ENC_PREFIX)) return _secDecryptWithSeed(text, seed, APP_ENC_PREFIX);
+
+    // v40.28の固定パスワード版で保存された可能性があるデータを読むための互換処理。
+    // 初回設定後の通常利用ではENCv2で再保存されます。
+    try { return _secDecryptWithSeed(text, seed, APP_OLD_ENC_PREFIX); } catch(_e) {}
+    const oldSeed = _secHash("assist2026|40.28|storage");
+    return _secDecryptWithSeed(text, oldSeed, APP_OLD_ENC_PREFIX);
+  } catch(e) {
+    console.warn("保存データの復号に失敗しました。パスワードを確認してください。", e);
+    return "";
+  }
+}
+function _secIsMetaKey(key) {
+  key = String(key || "");
+  return key === APP_SECURITY_PROFILE_KEY ||
+         key === "ins_nav_app_version" ||
+         key.indexOf("ins_nav_clean_distribution_") === 0;
+}
+function _secShouldProtectKey(key) {
+  key = String(key || "");
+  return APP_SECURITY_ENABLED && !_secIsMetaKey(key) && (
+    key.startsWith("ins_nav_") || key.startsWith("mendan_") || key.startsWith("menda_navi_")
+  );
+}
+(function installEncryptedLocalStorage(){
+  if (!APP_SECURITY_ENABLED || window.__insNavSecurityInstalled) return;
+  window.__insNavSecurityInstalled = true;
+  const rawGet = Storage.prototype.getItem;
+  const rawSet = Storage.prototype.setItem;
+  const rawRemove = Storage.prototype.removeItem;
+  Storage.prototype.getItem = function(key) {
+    const v = rawGet.call(this, key);
+    if (v == null) return v;
+    return _secShouldProtectKey(key) ? _secDecryptText(v) : v;
+  };
+  Storage.prototype.setItem = function(key, value) {
+    return rawSet.call(this, key, _secShouldProtectKey(key) ? _secEncryptText(value) : value);
+  };
+  Storage.prototype.removeItem = function(key) { return rawRemove.call(this, key); };
+  window.__insNavRawLocalStorageGet = function(key){ return rawGet.call(localStorage, key); };
+  window.__insNavRawLocalStorageSet = function(key, value){ return rawSet.call(localStorage, key, value); };
+})();
+
+function securityGetProfile() {
+  try {
+    const raw = window.__insNavRawLocalStorageGet ? window.__insNavRawLocalStorageGet(APP_SECURITY_PROFILE_KEY) : localStorage.getItem(APP_SECURITY_PROFILE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function securitySaveProfile(profile) {
+  const raw = JSON.stringify(profile || {});
+  if (window.__insNavRawLocalStorageSet) window.__insNavRawLocalStorageSet(APP_SECURITY_PROFILE_KEY, raw);
+  else localStorage.setItem(APP_SECURITY_PROFILE_KEY, raw);
+}
+function securityIsUnlocked() {
+  return !APP_SECURITY_ENABLED || (sessionStorage.getItem(APP_SECURITY_SESSION_KEY) === "1" && !!_secCurrentSeed());
+}
+function securityLockApp() {
+  if (!APP_SECURITY_ENABLED) return;
+  sessionStorage.removeItem(APP_SECURITY_SESSION_KEY);
+  sessionStorage.removeItem(APP_SECURITY_SEED_KEY);
+  document.body.classList.add("app-locked");
+  location.reload();
+}
+function securityCompleteUnlock(seed) {
+  sessionStorage.setItem(APP_SECURITY_SESSION_KEY, "1");
+  sessionStorage.setItem(APP_SECURITY_SEED_KEY, String(seed >>> 0));
+  // ログイン後に再読込して、起動時から正しい鍵でlocalStorageを読ませる。
+  location.reload();
+}
+function securitySetupPassword() {
+  const p1 = document.getElementById("securityNewPasswordInput")?.value || "";
+  const p2 = document.getElementById("securityConfirmPasswordInput")?.value || "";
+  const err = document.getElementById("securityLoginError");
+  if (p1.length < 8) {
+    if (err) err.textContent = "パスワードは8文字以上で設定してください。";
+    return false;
+  }
+  if (p1 !== p2) {
+    if (err) err.textContent = "確認用パスワードが一致しません。";
+    return false;
+  }
+  const salt = _secRandomSalt();
+  const seed = _secDeriveSeed(p1, salt);
+  securitySaveProfile({ version: 2, salt, verifier: _secVerifier(seed, salt), createdAt: new Date().toISOString() });
+  securityCompleteUnlock(seed);
+  return true;
+}
+function securityUnlockApp() {
+  const input = document.getElementById("securityPasswordInput");
+  const err = document.getElementById("securityLoginError");
+  const value = input ? input.value : "";
+  const profile = securityGetProfile();
+  if (!profile || !profile.salt || !profile.verifier) {
+    if (err) err.textContent = "先にパスワードを設定してください。";
+    return false;
+  }
+  const seed = _secDeriveSeed(value, profile.salt);
+  if (_secVerifier(seed, profile.salt) === profile.verifier) {
+    securityCompleteUnlock(seed);
+    return true;
+  }
+  if (err) err.textContent = "パスワードが違います。もう一度入力してください。";
+  if (input) { input.value = ""; input.focus(); }
+  return false;
+}
+function securityClearAllProtectedDataForReset() {
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k) continue;
+    if (k === APP_SECURITY_PROFILE_KEY || k.startsWith("ins_nav_") || k.startsWith("mendan_") || k.startsWith("menda_navi_")) {
+      keys.push(k);
+    }
+  }
+  keys.forEach(k => {
+    // クリーン配布済み判定キーは配布版の初期化制御用なので残します。
+    if (k.startsWith("ins_nav_clean_distribution_")) return;
+    localStorage.removeItem(k);
+  });
+  sessionStorage.removeItem(APP_SECURITY_SESSION_KEY);
+  sessionStorage.removeItem(APP_SECURITY_SEED_KEY);
+}
+function securityForgotPassword() {
+  const msg = "パスワードを忘れた場合、現在この端末内に保存されている暗号化データは復旧できません。\n\n続行すると、この端末の顧客データ・面談記録・商品管理の保存内容を初期化し、新しいパスワードを設定します。\n\n事前に保存したバックアップファイルがある場合は、初期化後にリストアできます。\n\n続行しますか？";
+  if (!confirm(msg)) return false;
+  const second = "本当に初期化しますか？\n\nこの操作は元に戻せません。バックアップがない場合、現在の端末内データは戻せません。";
+  if (!confirm(second)) return false;
+  securityClearAllProtectedDataForReset();
+  alert("端末内の保存データを初期化しました。次の画面で新しいパスワードを設定してください。バックアップがある場合は、ログイン後にリストアしてください。");
+  location.reload();
+  return true;
+}
+function securityChangePassword() {
+  const current = prompt("現在のパスワードを入力してください。");
+  if (current === null) return;
+  const profile = securityGetProfile();
+  const curSeed = profile ? _secDeriveSeed(current, profile.salt) : 0;
+  if (!profile || _secVerifier(curSeed, profile.salt) !== profile.verifier) {
+    alert("現在のパスワードが違います。");
+    return;
+  }
+  const next1 = prompt("新しいパスワードを入力してください（8文字以上）。");
+  if (next1 === null) return;
+  if (next1.length < 8) { alert("パスワードは8文字以上にしてください。"); return; }
+  const next2 = prompt("確認のため、もう一度入力してください。");
+  if (next2 === null) return;
+  if (next1 !== next2) { alert("確認用パスワードが一致しません。"); return; }
+
+  // 既存データを現在の鍵で読み出し、新しい鍵で再暗号化して保存し直す。
+  const keys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && _secShouldProtectKey(k)) keys.push(k);
+  }
+  const plainMap = {};
+  keys.forEach(k => { plainMap[k] = localStorage.getItem(k); });
+  const salt = _secRandomSalt();
+  const newSeed = _secDeriveSeed(next1, salt);
+  sessionStorage.setItem(APP_SECURITY_SEED_KEY, String(newSeed >>> 0));
+  keys.forEach(k => { localStorage.setItem(k, plainMap[k] || ""); });
+  securitySaveProfile({ version: 2, salt, verifier: _secVerifier(newSeed, salt), updatedAt: new Date().toISOString() });
+  sessionStorage.setItem(APP_SECURITY_SESSION_KEY, "1");
+  alert("パスワードを変更しました。");
+  location.reload();
+}
+function addSecurityLogoutButton() {
+  if (!APP_SECURITY_ENABLED || document.getElementById("securityLogoutBtn")) return;
+  const header = document.querySelector(".app-header .sep");
+  if (!header) return;
+  const changeBtn = document.createElement("button");
+  changeBtn.id = "securityChangePasswordBtn";
+  changeBtn.type = "button";
+  changeBtn.textContent = "🔑 変更";
+  changeBtn.onclick = securityChangePassword;
+  changeBtn.style.cssText = "border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:18px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px";
+  const btn = document.createElement("button");
+  btn.id = "securityLogoutBtn";
+  btn.type = "button";
+  btn.textContent = "🔒 ロック";
+  btn.onclick = securityLockApp;
+  btn.style.cssText = "border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:18px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px";
+  header.insertAdjacentElement("afterend", btn);
+  header.insertAdjacentElement("afterend", changeBtn);
+}
+function showSecurityLoginOverlay() {
+  if (!APP_SECURITY_ENABLED) return;
+  const profile = securityGetProfile();
+  if (securityIsUnlocked()) {
+    document.body.classList.remove("app-locked");
+    addSecurityLogoutButton();
+    return;
+  }
+  document.body.classList.add("app-locked");
+  if (document.getElementById("securityLoginOverlay")) return;
+  const isSetup = !profile || !profile.salt || !profile.verifier;
+  const overlay = document.createElement("div");
+  overlay.id = "securityLoginOverlay";
+  overlay.innerHTML = isSetup ? `
+    <div class="security-login-box">
+      <div style="font-size:28px;margin-bottom:8px">🔐</div>
+      <h2>初回パスワード設定</h2>
+      <p>この端末で使うログイン用パスワードを設定してください。GitHubを更新しても、この端末では設定したパスワードを使えます。</p>
+      <input id="securityNewPasswordInput" type="password" placeholder="新しいパスワード（8文字以上）" autocomplete="new-password">
+      <input id="securityConfirmPasswordInput" type="password" placeholder="確認用パスワード" autocomplete="new-password">
+      <div id="securityLoginError"></div>
+      <button type="button" onclick="securitySetupPassword()">パスワードを登録</button>
+      <div class="security-login-note">パスワード自体は保存せず、確認用データのみ保存します。顧客データは端末内で暗号化して保存します。</div>
+    </div>` : `
+    <div class="security-login-box">
+      <div style="font-size:28px;margin-bottom:8px">🔐</div>
+      <h2>比較推奨ナビ ログイン</h2>
+      <p>顧客情報・面談記録を保護するため、パスワードを入力してください。</p>
+      <input id="securityPasswordInput" type="password" placeholder="パスワード" autocomplete="current-password">
+      <div id="securityLoginError"></div>
+      <button type="button" onclick="securityUnlockApp()">ログイン</button>
+      <button type="button" onclick="securityForgotPassword()" style="background:var(--surface2);color:var(--text-mid);border:1px solid var(--border);margin-top:10px">パスワードを忘れた場合</button>
+      <div class="security-login-note">保存データは端末内で暗号化して保存されます。パスワードを忘れた場合は、端末内データを初期化し、バックアップから復元します。</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    const first = document.getElementById(isSetup ? "securityNewPasswordInput" : "securityPasswordInput");
+    if (first) first.focus();
+    const inputs = overlay.querySelectorAll("input");
+    inputs.forEach(input => input.addEventListener("keydown", e => {
+      if (e.key === "Enter") isSetup ? securitySetupPassword() : securityUnlockApp();
+    }));
+  }, 80);
+}
+document.addEventListener("DOMContentLoaded", showSecurityLoginOverlay);
 
 function getLocalStorageSafe(key, fallback = "") {
   try { return localStorage.getItem(key) || fallback; } catch(e) { return fallback; }
@@ -1782,7 +2217,7 @@ function checkLocalStorageWritable() {
     const storedVer = localStorage.getItem(STORED_VERSION_KEY);
     if (storedVer !== APP_VERSION) {
       safeSaveLocalStorage(STORED_VERSION_KEY, APP_VERSION);
-      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（ソニー生命文言修正・ひまわり生命保持版・顧客データは保持）");
+      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（パスワード救済安全版・顧客データは保持）");
     }
   } catch(e) {
     console.warn("localStorageが利用できない環境です。通常モードで開いてください。", e);
@@ -1919,6 +2354,8 @@ function deepClearAppSession(options = {}) {
   app._historyId = "";
   app._savedSigns = { customer: "", agent: "" };
   app._savedChecks = {};
+  app.elderlyCompanion = {};
+  restoreElderlyCompanionUI({});
   app._printHtmlEdited = "";
   app._forceRegenerateDocument = false;
   app._closingType = "";
@@ -1934,7 +2371,7 @@ function sanitizeModeData(kind) {
   if (normalized === "corporate") {
     app.answers.contractType = "法人";
     delete app.answers.mainConcerns;
-    ["cancerPriority","cancerEpithelial","medicalPriority","deathPurpose","deathPeriod","incomeAmount","incomePeriod","assetPurpose","investmentExperience","riskTolerance","retirementConcern","carePriority"].forEach(k => delete app.answers[k]);
+    ["cancerPriority","cancerEpithelial","medicalPriority","deathPurpose","deathFuneralNeed","deathPeriod","incomeAmount","incomePeriod","assetPurpose","investmentExperience","riskTolerance","retirementConcern","carePriority"].forEach(k => delete app.answers[k]);
   } else {
     app.answers.contractType = "個人";
     ["hojinScale","hojinConcerns","hojinLoan","hojinRetire","hojinSuccessor"].forEach(k => delete app.answers[k]);
@@ -2015,10 +2452,12 @@ const questionTemplates = {
       ["cancer","がんになった時のこと"],
       ["medical","入院や手術のこと"],
       ["kids","子どもの養育費・教育費"],
-      ["family","家族の生活費"],
+      ["family","万一のときの家族の生活費"],
+      ["funeral","葬儀代・整理資金"],
+      ["inheritance","相続・資産承継"],
       ["income","働けなくなった時の収入"],
-      ["future","老後・将来のお金"],
-      ["asset","資産形成・貯蓄"],
+      ["future","老後生活・年金への備え"],
+      ["asset","資産形成・お金を増やしたい"],
       ["care","介護・認知症への備え"]
     ]
   },
@@ -2085,9 +2524,15 @@ const questionTemplates = {
   },
   deathPurpose: {
     id:"deathPurpose", need:"death",
-    title:"死亡保障の主な目的は何ですか？",
+    title:"死亡保障を検討される理由は何ですか？",
     type:"single",
-    options:["家族の生活費","子どもの教育費","葬儀代・最終費用程度","相続・資産承継","告知に不安がある（無告知型）"]
+    options:["家族の生活費","子どもの教育費","葬儀代・整理資金","相続・資産承継","複数あてはまる","告知に不安がある（無告知型）"]
+  },
+  deathFuneralNeed: {
+    id:"deathFuneralNeed", need:"death",
+    title:"葬儀代・整理資金を含め、準備額の目安はありますか？",
+    type:"single",
+    options:["200万円前後を目安にしたい","300万円前後まで備えたい","500万円以上も検討したい","既契約や預貯金で一部準備済み","葬儀代より遺族生活費を重視したい","説明を聞いてから決めたい"]
   },
   deathPeriod: {
     id:"deathPeriod", need:"death",
@@ -2142,7 +2587,7 @@ const questionTemplates = {
 const questionsByNeed = {
   cancer:        ["cancerPriority","cancerEpithelial"],
   medical:       ["medicalPriority"],
-  death:         ["deathPurpose","deathPeriod"],
+  death:         ["deathPurpose","deathFuneralNeed","deathPeriod"],
   income:        ["incomeAmount","incomePeriod"],
   asset:         ["assetPurpose","investmentExperience","riskTolerance"],
   retirement:    ["retirementConcern"],
@@ -2161,6 +2606,19 @@ Object.values(questionTemplates).forEach(q => { questionById[q.id] = q; });
 const el = id => document.getElementById(id);
 const val = id => el(id) ? el(id).value : "";
 const checked = id => el(id) && el(id).checked;
+// v40.30: 署名画面・意向確認書参照で確認チェックが外れて見える事故を防ぐ共通判定
+function getSavedCheckValue(id, checksMap) {
+  const map = checksMap || app._savedChecks || {};
+  const node = el(id);
+  if (id === "agentConfirmCheck") {
+    // 募集人確認は印刷用チェックとメインチェックが同期するため、どれかがtrueなら確認済みとして扱う
+    return !!(map[id] || app._printConfirmChecked || (node && node.checked));
+  }
+  if (id === "checkFamilyAttendance") {
+    return !!(map[id] || hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} }) || (node && node.checked));
+  }
+  return !!(map[id] || (node && node.checked));
+}
 const esc = s => String(s||"").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 
 // 金額入力を 5,000 のように表示し、内部保存は数字だけにする
@@ -2251,9 +2709,10 @@ function showPage(id) {
       setStatus("質問フローの表示を復元できませんでした。顧客を選び直してください。", "err");
     }
   }
-  if (id === "signPage") { updateElderly(); updateCheckLabels(); updateCheckProgress(); }
+  if (id === "signPage") { updateElderly(); syncElderlyCompanionCardVisibility(); updateCheckLabels(); updateCheckProgress(); }
   // 提案ページ表示時は常に最新のapp.recommendationsで再描画
   if (id === "recommendPage" && app.needs && app.needs.length > 0) {
+    syncElderlyCompanionCardVisibility();
     renderRecommendations();
   }
   // 商品管理ページ表示時は商品リストを描画
@@ -2273,8 +2732,179 @@ function showPage(id) {
   setTimeout(resizeAllTextareas, 60);
 }
 
+
+function isElderlyFirstCustomerContext() {
+  const age = Number(app.customer?.age || 0);
+  const status = app.customer?.meetingStatus || "";
+  return age >= 70 && status === "初回面談";
+}
+
+function calculateAgeFromBirth(birthStr, refDate = new Date()) {
+  if (!birthStr) return null;
+  const p = String(birthStr).split("-");
+  if (p.length < 3) return null;
+  const y = Number(p[0]), m = Number(p[1]), d = Number(p[2]);
+  const bd = new Date(y, m - 1, d);
+  if (isNaN(bd.getTime()) || bd.getFullYear() !== y || bd.getMonth() !== m - 1 || bd.getDate() !== d) return null;
+  const t = refDate instanceof Date ? refDate : new Date(refDate);
+  let age = t.getFullYear() - bd.getFullYear();
+  const mm = t.getMonth() - bd.getMonth();
+  if (mm < 0 || (mm === 0 && t.getDate() < bd.getDate())) age--;
+  return age >= 0 && age < 130 ? age : null;
+}
+
+function formatJapaneseEraDate(birthStr) {
+  if (!birthStr) return "";
+  const p = String(birthStr).split("-");
+  if (p.length < 3) return birthStr;
+  const dt = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+  if (isNaN(dt.getTime())) return birthStr;
+  try {
+    return new Intl.DateTimeFormat("ja-JP-u-ca-japanese", { era:"long", year:"numeric", month:"numeric", day:"numeric" }).format(dt);
+  } catch(e) {
+    return `${p[0]}年${Number(p[1])}月${Number(p[2])}日`;
+  }
+}
+
+function collectElderlyCompanionFromDom() {
+  const fallback = app.elderlyCompanion || {};
+  return {
+    name: (el("elderlyCompanionName")?.value || fallback.name || "").trim(),
+    relation: (el("elderlyCompanionRelation")?.value || fallback.relation || "").trim(),
+    birth: (el("elderlyCompanionBirth")?.value || fallback.birth || "").trim(),
+    explainChecked: !!(el("elderlyCompanionExplainCheck") ? el("elderlyCompanionExplainCheck").checked : fallback.explainChecked),
+    intentChecked: !!(el("elderlyCompanionIntentCheck") ? el("elderlyCompanionIntentCheck").checked : fallback.intentChecked)
+  };
+}
+
+function getElderlyCompanionInfo() {
+  const info = collectElderlyCompanionFromDom();
+  const age = calculateAgeFromBirth(info.birth);
+  return { ...info, age, ageOk: age !== null && age <= 69, complete: !!(info.name && info.relation && info.birth && age !== null && age <= 69 && info.explainChecked && info.intentChecked) };
+}
+
+function restoreElderlyCompanionUI(info) {
+  app.elderlyCompanion = { ...(info || {}) };
+  if (el("elderlyCompanionName")) el("elderlyCompanionName").value = app.elderlyCompanion.name || "";
+  if (el("elderlyCompanionRelation")) el("elderlyCompanionRelation").value = app.elderlyCompanion.relation || "";
+  if (el("elderlyCompanionBirth")) el("elderlyCompanionBirth").value = app.elderlyCompanion.birth || "";
+  if (el("elderlyCompanionExplainCheck")) el("elderlyCompanionExplainCheck").checked = !!app.elderlyCompanion.explainChecked;
+  if (el("elderlyCompanionIntentCheck")) el("elderlyCompanionIntentCheck").checked = !!app.elderlyCompanion.intentChecked;
+  onElderlyCompanionInput(false);
+}
+
+function toggleElderlyCompanionCheck(id) {
+  setTimeout(() => {
+    const cb = el(id);
+    const row = cb ? cb.closest(".check-item") : null;
+    if (row) row.classList.toggle("checked", !!cb.checked);
+    onElderlyCompanionInput();
+  }, 0);
+}
+
+function onElderlyCompanionInput(doSave = true) {
+  const info = getElderlyCompanionInfo();
+  app.elderlyCompanion = info;
+  const ageBox = el("elderlyCompanionAgeBox");
+  if (ageBox) {
+    if (!info.birth) {
+      ageBox.className = "note-box info";
+      ageBox.textContent = "同席者の生年月日を入力すると、年齢を自動判定します。";
+    } else if (info.age === null) {
+      ageBox.className = "note-box danger";
+      ageBox.textContent = "生年月日を確認してください。";
+    } else if (info.ageOk) {
+      ageBox.className = "note-box info";
+      ageBox.innerHTML = `✅ 同席者年齢：満${info.age}歳（満69歳以下の要件を満たしています）`;
+    } else {
+      ageBox.className = "note-box danger";
+      ageBox.innerHTML = `⛔ 同席者年齢：満${info.age}歳（満70歳以上のため、初回成約の同席者要件を満たしません）`;
+    }
+  }
+  ["elderlyCompanionExplainCheck","elderlyCompanionIntentCheck"].forEach(id => {
+    const cb = el(id); const row = cb ? cb.closest(".check-item") : null;
+    if (row) row.classList.toggle("checked", !!cb.checked);
+  });
+  const status = el("elderlyCompanionStatus");
+  if (status) {
+    if (info.complete) {
+      status.className = "note-box info";
+      status.innerHTML = `✅ 高齢募集確認済：${esc(info.name)} 様（${esc(info.relation)}、${esc(formatJapaneseEraDate(info.birth))}生、満${info.age}歳）。本日成約可能です。`;
+    } else {
+      status.className = "note-box danger";
+      status.textContent = "未確認：同席者氏名・続柄・生年月日・説明確認・申込意向確認をすべて入力してください。";
+    }
+  }
+  const fam = el("checkFamilyAttendance");
+  if (fam) fam.checked = !!info.complete;
+  if (!app._savedChecks) app._savedChecks = {};
+  app._savedChecks.checkFamilyAttendance = !!info.complete;
+  if (doSave) autoSave();
+}
+
+function hasValidElderlyCompanion(s) {
+  const info = (s && s.elderlyCompanion) ? s.elderlyCompanion : getElderlyCompanionInfo();
+  const age = info.age != null ? Number(info.age) : calculateAgeFromBirth(info.birth);
+  return !!(info.name && info.relation && info.birth && age !== null && age <= 69 && info.explainChecked && info.intentChecked);
+}
+
+function buildElderlyCompanionRecordHtml(info) {
+  if (!info) info = getElderlyCompanionInfo();
+  const age = info.age != null ? Number(info.age) : calculateAgeFromBirth(info.birth);
+  if (!(info.name && info.relation && info.birth && age !== null)) return "";
+  return `
+    <div class="print-section print-section-avoid">
+      <h3>4-2. 高齢募集対応履歴</h3>
+      <div style="border:1px solid #fca5a5;background:#fff7f7;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.7">
+        <b>【対応内容】</b><br>
+        本日成約希望のため同席者の年齢を確認。<br>
+        同席者：${esc(info.name)} 様（${esc(formatJapaneseEraDate(info.birth))}生、満${esc(age)}歳）　続柄：${esc(info.relation)}<br>
+        ソニー生命・SOMPOひまわり生命の高齢募集基準（満70歳以上）に該当せず、当日成約可能と判断。<br><br>
+        <b>【確認事項】</b><br>
+        ✓ 同席者氏名確認済<br>
+        ✓ 続柄確認済<br>
+        ✓ 同席者年齢確認済（満${esc(age)}歳）<br>
+        ✓ 高齢募集非該当（満69歳以下）<br>
+        ✓ 同席者へ商品内容・重要事項を説明済<br>
+        ✓ 同席者も申込意向を確認済
+      </div>
+    </div>`;
+}
+
+function hasElderlyContractSelected() {
+  if (!app.recommendations || typeof app.recommendations !== "object") return false;
+  return Object.values(app.recommendations).some(r => String(r?.status || "").startsWith("成約"));
+}
+
+function syncElderlyCompanionCardVisibility(forceShow = false) {
+  const card = el("elderlyCompanionCard");
+  if (!card) return;
+  // v40.26: 商品説明前から高齢募集入力欄が出ると驚くため、
+  // 初回高齢募集で「成約」を選択した時だけ表示する。
+  const shouldShow = isElderlyFirstCustomerContext() && (forceShow || hasElderlyContractSelected());
+  card.classList.toggle("hidden", !shouldShow);
+  if (shouldShow) onElderlyCompanionInput(false);
+}
+
 function updateCheckLabels() {
-  // v40.8: 会社別の確認チェックは別管理となったため画面には表示しません。
+  // v40.32: 高齢募集の確認事項を初回同席者確認／2回目以降の複数回面談確認で出し分け
+  const age = Number(app.customer?.age || 0);
+  const isFirst = (app.customer?.meetingStatus || "") === "初回面談";
+  const hasContract = hasElderlyContractSelected();
+  const familyRow = el("familyAttendanceRow");
+  if (familyRow) familyRow.classList.toggle("hidden", !(age >= 70 && isFirst && hasContract && hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} })));
+  const famText = familyRow ? familyRow.querySelector("span") : null;
+  const info = app.elderlyCompanion || {};
+  const famAge = info.age ?? calculateAgeFromBirth(info.birth);
+  if (famText && age >= 70 && isFirst) famText.textContent = `⑤【高齢対応】満69歳以下のご家族等が同席し、説明内容と申込意向を確認した${info.name ? "（"+info.name+"様・満"+famAge+"歳）" : ""}`;
+  const elderlyRow = el("elderlyCheckRow");
+  if (elderlyRow) elderlyRow.classList.toggle("hidden", !(age >= 70 && !isFirst && hasContract));
+  const elderText = elderlyRow ? elderlyRow.querySelector("span") : null;
+  if (elderText && age >= 70 && !isFirst) elderText.textContent = "⑤【高齢対応】複数回面談を実施し、前回説明内容と本日の申込意向を確認した";
+  if (familyRow && !familyRow.classList.contains("hidden")) {
+    const cb = el("checkFamilyAttendance");
+    if (cb) cb.checked = true;
+  }
 }
 
 function toggleCheck(label) {
@@ -2287,6 +2917,7 @@ function toggleCheck(label) {
       if (!app._savedChecks) app._savedChecks = {};
       app._savedChecks[cb.id] = cb.checked;
     }
+    if (cb.id === "checkFamilyAttendance") { updateCheckLabels(); renderRecommendations(); }
     label.classList.toggle("checked", cb.checked);
     if (mark) mark.textContent = cb.checked ? "✅" : "☐";
     updateCheckProgress();
@@ -2549,6 +3180,75 @@ function dateLabel(dateStr) {
   return { text: `⚠ 期限切れ (${fmt})`, cls: "overdue-tag" };
 }
 
+
+function getEffectiveNextMeeting(c) {
+  if (!c) return "";
+  if (c.nextMeeting) return c.nextMeeting;
+  try {
+    const hist = getInterviewHistory(c.id);
+    const latest = hist && hist[0];
+    return latest ? (latest.nextMeetingSign || latest.nextMeetingQuick || latest.nextMeeting || "") : "";
+  } catch(e) { return ""; }
+}
+
+function getEffectiveNextMeetingNote(c) {
+  if (!c) return "";
+  if (c.nextMeetingNote) return c.nextMeetingNote;
+  try {
+    const hist = getInterviewHistory(c.id);
+    const latest = hist && hist[0];
+    return latest ? (latest.nextMeetingNote || latest.nextMeetingQuickNote || "") : "";
+  } catch(e) { return ""; }
+}
+
+function hasFollowupStatusSelected() {
+  return Object.values(app.recommendations || {}).some(r =>
+    ["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r && r.status)
+  );
+}
+
+function hasFinalContractSelected() {
+  return Object.values(app.recommendations || {}).some(r => r && r.status === "成約");
+}
+
+function shouldClearNextMeetingForFinalContract() {
+  // 成約のみで完了した面談では、過去に入力した次回面談予定・次回対応を残さない。
+  return hasFinalContractSelected() && !hasFollowupStatusSelected();
+}
+
+function clearNextMeetingFieldsAndCustomer() {
+  if (!app.customer || !app.customer.id) return;
+  ["nextMeeting","nextMeetingSign","nextMeetingQuick","nextMeetingNote","nextMeetingQuickNote"].forEach(id => { if (el(id)) el(id).value = ""; });
+  app.customer.nextMeeting = "";
+  app.customer.nextMeetingNote = "";
+  const list = getAllCustomers();
+  const idx = list.findIndex(x => x.id === app.customer.id);
+  if (idx >= 0) { list[idx] = { ...list[idx], nextMeeting: "", nextMeetingNote: "" }; saveAllCustomers(list); }
+}
+
+function syncNextMeetingToCustomerFromInputs() {
+  if (!app.customer || !app.customer.id) return;
+  if (shouldClearNextMeetingForFinalContract()) {
+    clearNextMeetingFieldsAndCustomer();
+    return;
+  }
+  const date = val("nextMeetingSign") || val("nextMeetingQuick") || val("nextMeeting") || "";
+  const note = val("nextMeetingNote") || val("nextMeetingQuickNote") || "";
+  app.customer.nextMeeting = date;
+  app.customer.nextMeetingNote = note;
+  if (el("nextMeeting")) el("nextMeeting").value = date;
+  if (el("nextMeetingSign")) el("nextMeetingSign").value = date;
+  if (el("nextMeetingQuick")) el("nextMeetingQuick").value = date;
+  if (el("nextMeetingNote")) el("nextMeetingNote").value = note;
+  if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = note;
+  const list = getAllCustomers();
+  const idx = list.findIndex(x => x.id === app.customer.id);
+  if (idx >= 0) {
+    list[idx] = { ...list[idx], nextMeeting: date, nextMeetingNote: note };
+    saveAllCustomers(list);
+  }
+}
+
 function rowClass(dateStr, custOrId) {
   // 日程ベースの判定（優先）
   if (dateStr) {
@@ -2576,10 +3276,11 @@ function rowClass(dateStr, custOrId) {
           !isElderlyFirstSession(latest, _c)
         );
         if (hasValidContract) return "contracted";
-        if (recs.some(([, r]) => ["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status))) return "followup";
+        if (recs.some(([, r]) => ["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status) || !!r.nextDate)) return "followup";
       }
     } catch(e) {}
   }
+  if (dateStr) return "followup";
   return "";
 }
 
@@ -2610,15 +3311,16 @@ function renderDashboard() {
             contractedProducts.add((r.contract || r.product || need).split("（")[0].trim());
           }
           // 最新履歴のみで次回提案を判定
-          if (s === hist[0] && inProgressStatuses.includes(r.status)) hasInProgress = true;
+          if (s === hist[0] && (inProgressStatuses.includes(r.status) || !!r.nextDate)) hasInProgress = true;
         });
       });
       contracted += contractedProducts.size;
-      if (hasInProgress) inProgress++;
+      if (hasInProgress || !!getEffectiveNextMeeting(c)) inProgress++;
     } catch(e) {}
     // 期限切れ（次回面談日が過去）
-    if (c.nextMeeting) {
-      const d = new Date(c.nextMeeting); d.setHours(0,0,0,0);
+    const _effNext = getEffectiveNextMeeting(c);
+    if (_effNext) {
+      const d = new Date(_effNext); d.setHours(0,0,0,0);
       const diff = Math.floor((d - today) / 86400000);
       if (diff < 0) overdue++;
     }
@@ -2667,8 +3369,9 @@ function renderCustomerList() {
 
   if (dashFilter === "today") {
     list = list.filter(c => {
-      if (!c.nextMeeting) return false;
-      const d = new Date(c.nextMeeting); d.setHours(0,0,0,0);
+      const _nm = getEffectiveNextMeeting(c);
+      if (!_nm) return false;
+      const d = new Date(_nm); d.setHours(0,0,0,0);
       return Math.floor((d - today) / 86400000) === 0;
     });
   } else if (dashFilter === "contracted") {
@@ -2690,18 +3393,20 @@ function renderCustomerList() {
     });
   } else if (dashFilter === "followup") {
     list = list.filter(c => {
+      if (getEffectiveNextMeeting(c)) return true;
       try {
         const hist = getInterviewHistory(c.id);
         const latest = hist[0];
         if (latest && Object.values(latest.recommendations||{}).some(r =>
-          ["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status))) return true;
+          ["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status) || !!r.nextDate)) return true;
       } catch(e) {}
       return false;
     });
   } else if (dashFilter === "overdue") {
     list = list.filter(c => {
-      if (!c.nextMeeting) return false;
-      const d = new Date(c.nextMeeting); d.setHours(0,0,0,0);
+      const _nm = getEffectiveNextMeeting(c);
+      if (!_nm) return false;
+      const d = new Date(_nm); d.setHours(0,0,0,0);
       return Math.floor((d - today) / 86400000) < 0;
     });
   }
@@ -2715,8 +3420,9 @@ function renderCustomerList() {
 
   container.innerHTML = list.map(c => {
     c = patchLegacyCustomer(c);
-    const dl = dateLabel(c.nextMeeting);
-    const rc = rowClass(c.nextMeeting, c); // 顧客オブジェクトを渡して旧データも正確に判定
+    const effectiveNextMeeting = getEffectiveNextMeeting(c);
+    const dl = dateLabel(effectiveNextMeeting);
+    const rc = rowClass(effectiveNextMeeting, c); // 顧客オブジェクトを渡して旧データも正確に判定
     const isSelected = app.customer?.id === c.id;
     const statusColor = false ? "background:#d1fae5;color:#065f46"
       : c.meetingStatus === "見送り後フォロー" ? "background:#f3f4f6;color:#6b7280"
@@ -2803,6 +3509,7 @@ function renderCustomerList() {
     const printBtn = hasSavedData
       ? `<button onclick="event.stopPropagation();viewSavedInterview('${c.id}')" style="font-size:11px;padding:4px 10px;border:1px solid var(--green);border-radius:6px;background:transparent;color:var(--green);cursor:pointer;white-space:nowrap;font-weight:700">${histLabel}</button>`
       : "";
+    const deleteBtn = `<button onclick="event.stopPropagation();deleteCustomerById('${c.id}')" title="この顧客だけ削除" style="font-size:11px;padding:4px 10px;border:1px solid #dc2626;border-radius:6px;background:#fff;color:#dc2626;cursor:pointer;white-space:nowrap;font-weight:700">🗑 削除</button>`;
     const kind = getCustomerKind(c);
     const displayName = customerDisplayName(c);
     const meta = kind === "corporate"
@@ -2818,6 +3525,7 @@ function renderCustomerList() {
         <span class="cust-badge" style="${statusColor}">${esc(c.meetingStatus||"")}</span>
         <div class="cust-date ${dl.cls}">${dl.text}</div>
         ${printBtn}
+        ${deleteBtn}
       </div>
     </div>`;
   }).join("");
@@ -2843,10 +3551,12 @@ function selectCustomer(id) {
   el("gender").value = c.gender || "未選択";
   el("source").value = c.source || "紹介";
   el("meetingStatus").value = c.meetingStatus || "初回面談";
-  el("nextMeeting").value = c.nextMeeting || "";
+  el("nextMeeting").value = getEffectiveNextMeeting(c) || "";
   restoreCustomerTypeUI(c.customerType);
-  if (el("nextMeetingQuick")) el("nextMeetingQuick").value = c.nextMeeting || "";
-  if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = c.nextMeetingNote || "";
+  if (el("nextMeetingQuick")) el("nextMeetingQuick").value = getEffectiveNextMeeting(c) || "";
+  if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = getEffectiveNextMeetingNote(c) || "";
+  if (el("nextMeetingSign")) el("nextMeetingSign").value = getEffectiveNextMeeting(c) || "";
+  if (el("nextMeetingNote")) el("nextMeetingNote").value = getEffectiveNextMeetingNote(c) || "";
   if (el("customerFormTitle")) el("customerFormTitle").textContent = "お客様情報を編集";
   restoreCustomerTypeUI(c.customerType);
   // その顧客の保存済み面談データをメモリに復元（画面遷移はしない）
@@ -2874,12 +3584,12 @@ function selectCustomer(id) {
       const chkMap = s.checks || {};
       app._savedChecks = { ...chkMap }; // DOM非依存バックアップ
       const checkIds = ["checkIntent","checkCompare",
-                        "checkReason","checkImportant","checkElderly","checkElderlyMulti","checkResult",
+                        "checkReason","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult",
                         "agentConfirmCheck"];
       checkIds.forEach(id => {
         const cb = el(id);
         if (!cb) return;
-        const val = !!chkMap[id];
+        const val = getSavedCheckValue(id, chkMap);
         cb.checked = val;
         const label = cb.closest("label");
         if (label) {
@@ -3019,6 +3729,8 @@ function viewInterviewRecord(customerId, historyId) {
   app.answers = s.answers || {};
   app.needs = s.needs || [];
   app.recommendations = s.recommendations || {};
+  app.elderlyCompanion = s.elderlyCompanion || {};
+  restoreElderlyCompanionUI(app.elderlyCompanion);
   app._carriedContracts = s._carriedContracts || [];  // ← 引き継ぎ成約を復元
   app.queue = [questionTemplates.start, questionTemplates.needConfirm];
   app.index = 0;
@@ -3034,10 +3746,10 @@ function viewInterviewRecord(customerId, historyId) {
   // チェックボックス復元 + app._savedChecksに保持（DOM依存しない）
   const chkMap = s.checks || {};
   app._savedChecks = { ...chkMap }; // DOM非依存のバックアップ
-  ["checkIntent","checkCompare","checkReason","checkImportant","checkElderly","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
+  ["checkIntent","checkCompare","checkReason","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
     const cb = el(id);
     if (!cb) return;
-    const v = !!chkMap[id];
+    const v = getSavedCheckValue(id, chkMap);
     cb.checked = v;
     const label = cb.closest("label");
     if (!label) return;
@@ -3127,13 +3839,17 @@ function saveCustomer() {
     age: isCorporate ? "" : val("age"),
     generation: isCorporate ? "" : val("generation"),
     gender: isCorporate ? "未選択" : val("gender"),
-    source: val("source"), meetingStatus: val("meetingStatus"), nextMeeting: val("nextMeeting"),
+    source: val("source"), meetingStatus: val("meetingStatus"), nextMeeting: val("nextMeeting"), nextMeetingNote: getEffectiveNextMeetingNote(app.customer) || val("nextMeetingQuickNote") || val("nextMeetingNote") || "",
     customerType: val("customerType") || "standard",
     savedAt: new Date().toISOString()
   };
   if (idx >= 0) list[idx] = c; else list.push(c);
   saveAllCustomers(list);
   app.customer = c;
+  if (el("nextMeetingQuick")) el("nextMeetingQuick").value = c.nextMeeting || "";
+  if (el("nextMeetingSign")) el("nextMeetingSign").value = c.nextMeeting || "";
+  if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = c.nextMeetingNote || "";
+  if (el("nextMeetingNote")) el("nextMeetingNote").value = c.nextMeetingNote || "";
   // 後方互換のため旧キーにも保存
   safeSaveLocalStorage(CUSTOMER_KEY, JSON.stringify(c));
   updateActiveCustomer();
@@ -3145,11 +3861,30 @@ function saveCustomer() {
 
 function deleteCurrentCustomer() {
   if (!app.customer?.id) { setStatus("顧客が選択されていません。", "warn"); return; }
-  if (!confirm(`「${customerDisplayName(app.customer)}」${customerDisplaySuffix(app.customer)}のデータを削除しますか？\n面談履歴・署名・チェック情報もすべて削除されます。`)) return;
-  const id = app.customer.id; // 削除前にIDを保持
-  const list = getAllCustomers().filter(x => x.id !== id);
+  deleteCustomerById(app.customer.id);
+}
+
+function deleteCustomerById(id) {
+  const listAll = getAllCustomers();
+  const target = listAll.find(x => x.id === id);
+  if (!target) { setStatus("削除対象の顧客が見つかりません。", "warn"); return; }
+  const name = customerDisplayName(target) + customerDisplaySuffix(target);
+  const msg = `「${name}」のデータだけを削除します。
+
+削除される内容：
+・顧客情報
+・面談履歴
+・成約記録
+・次回面談予定
+・意向確認書データ
+・署名データ
+
+他のお客様のデータは残ります。
+よろしいですか？`;
+  if (!confirm(msg)) return;
+  const list = listAll.filter(x => x.id !== id);
   saveAllCustomers(list);
-  localStorage.removeItem(CUSTOMER_KEY);
+  if (app.customer?.id === id) localStorage.removeItem(CUSTOMER_KEY);
   localStorage.removeItem(historyKey(id));   // 面談履歴を削除
   localStorage.removeItem(interviewKey(id)); // 面談状態・署名・チェックを削除
   // グローバルキー（INTERVIEW_KEY）に削除対象顧客のデータが残っていれば消す
@@ -3160,9 +3895,14 @@ function deleteCurrentCustomer() {
   } catch(e) {
     localStorage.removeItem(INTERVIEW_KEY); // パース失敗時も安全側に倒して削除
   }
-  app.customer = null;
-  goCustomerPage(false); // フォームクリア、リスト更新
-  setStatus("顧客を削除しました。");
+  if (app.customer?.id === id) {
+    app.customer = null;
+    goCustomerPage(false); // フォームクリア、リスト更新
+  } else {
+    renderCustomerList();
+    renderDashboard();
+  }
+  setStatus(`${name}のデータを削除しました。他のお客様のデータは保持しています。`);
 }
 
 function loadCustomer() {
@@ -3468,10 +4208,11 @@ function updateElderly() {
   const age = Number(app.customer?.age || val("age") || 0);
   const show = age >= 70;
   el("elderlyNotice").classList.toggle("hidden", !show);
-  el("elderlyCheckRow").classList.toggle("hidden", !show);
+  updateCheckLabels();
   // elderlyMultiMeetRowはcheckElderlyに統合済みのため常に非表示
   if (el("elderlyMultiMeetRow")) el("elderlyMultiMeetRow").style.display = "none";
   if (!show && el("checkElderly")) el("checkElderly").checked = false;
+  if (!show && el("checkFamilyAttendance")) el("checkFamilyAttendance").checked = false;
 }
 
 function clearAll() {
@@ -3732,6 +4473,8 @@ function derivedNeedsFromConcerns() {
   if (concerns.includes("medical")) set.add("medical");
   if (concerns.includes("kids")) { set.add("death"); set.add("income"); }
   if (concerns.includes("family")) { set.add("death"); set.add("income"); }
+  if (concerns.includes("funeral")) set.add("death");
+  if (concerns.includes("inheritance")) set.add("death");
   if (concerns.includes("income")) set.add("income");
   if (concerns.includes("future")) set.add("retirement");
   if (concerns.includes("asset")) set.add("asset");
@@ -3968,12 +4711,13 @@ function productLogic(need) {
           "その他・別途メモ"
         ] };
     return { product:`${c1}・${c2}｜死亡保障を比較`,
-      reason:"ご家族の生活費・教育費・必要保障期間を踏まえ、保障内容と保険料を比較説明しました",
+      reason:"ご家族の生活費・教育費に加え、葬儀代・整理資金などの必要保障額を踏まえ、保障内容と保険料を比較説明しました",
       productDesc:[
         { name:`${c1}｜収入保障保険「じぶんと家族のお守り」`, desc:"【SOMPOひまわり生命・対面専用】万一の際に毎月一定額が保険期間満了まで支払われる収入保障型。無解約返戻金型就労不能保障特約（就労不能状態で毎月給付）や、無解約返戻金型メンタル疾患保障付七大疾病保障特約（2年または5年間受け取り）を付加できる設計があります。リスク区分は非喫煙者健康体・非喫煙者標準体・喫煙者標準体・標準体の4区分。" },
         { name:`${c1}｜終身保険「一生のお守り」`, desc:"【SOMPOひまわり生命・対面専用】低解約返戻金型終身保険。払込期間中の解約返戻金を70%に抑えることで保険料が割安。払込満了後は通常の終身保険と同水準に。葬儀費用・相続対策に。" },
         { name:`${c1}｜終身保険「新・誰でも終身」（無選択型）`, desc:"【SOMPOひまわり生命・対面専用】医師による診査や告知が不要。健康状態に不安がある方でも加入できる終身保険。保険料はやや高めだが一生涯の死亡保障に備えられます。契約から2年以内の死亡は既払込保険料相当額が死亡保障となります（災害死亡を除く）。" },
-        { name:`${c2}｜終身保険（円建て）`, desc:"【ソニー生命・対面専用】予定利率固定の円建て終身保険。一生涯の死亡保障が確保でき、解約返戻金は運用実績に左右されません。葬儀費用・相続対策の候補の一つです。" },
+        { name:`${c2}｜有期払込終身保険（無配当）`, desc:"【ソニー生命・対面専用】円建ての終身保険。死亡・高度障害保障が一生涯続き、払込期間満了後も保障は継続します。葬儀代・整理資金、相続対策、老後の保障整理の候補として確認します。解約返戻金は運用実績で増減する商品ではありません。" },
+        { name:`${c2}｜指定通貨建積立利率更改型一時払終身保険（無告知型・無配当）`, desc:"【ソニー生命・対面専用】円建・米ドル建から選択できる一時払終身保険。告知・診査不要で、死亡保険金の非課税枠活用や葬儀代・整理資金、相続対策の候補になります。外貨建の場合は為替リスク、解約時期による返戻金変動を説明します。" },
         { name:`${c2}｜生前給付終身保険「リビング・ベネフィット（20）」※（20）は告知書番号`, desc:"【ソニー生命・対面専用】生活保障がつかない場合は、三大疾病（がん・急性心筋梗塞・脳卒中）と死亡・高度障害を一生涯保障。生前給付後は契約消滅となる点を説明します。" },
         { name:`${c1}｜特定疾病保障保険（定期型／終身型）`, desc:"【SOMPOひまわり生命・対面専用】がん・急性心筋梗塞・脳卒中の所定状態と、死亡・高度障害に備える特定疾病保障。定期型に加え、5年ごと利差配当付特定疾病保障終身保険として一生涯の保障を確保する選択肢もあります。保障期間・保険料・配当の有無を比較して説明します。" },
         { name:`${c2}｜終身保険「バリアブルライフ（終身型）」`, desc:"【ソニー生命・対面専用】変額終身保険。保険料を株式・債券等で運用し、解約返戻金が運用実績によって変動しますが死亡保険金は最低保証あり。資産形成を兼ねた一生涯の保障が欲しい方に。" },
@@ -3986,7 +4730,9 @@ function productLogic(need) {
         `${c1}｜じぶんと家族のお守り＋無解約返戻金型メンタル疾患保障付七大疾病保障特約`,
         `${c1}｜終身保険（一生のお守り）`,
         `${c1}｜終身保険（新・誰でも終身・無選択型）`,
-        `${c2}｜終身保険（円建て）`,
+        `${c2}｜有期払込終身保険（無配当）`,
+        `${c2}｜指定通貨建積立利率更改型一時払終身保険（円建）`,
+        `${c2}｜指定通貨建積立利率更改型一時払終身保険（米ドル建）`,
         `${c2}｜生前給付終身保険（リビング・ベネフィット）`,
         `${c1}｜特定疾病保障保険（定期型）`,
         `${c1}｜5年ごと利差配当付特定疾病保障終身保険`,
@@ -4261,6 +5007,145 @@ function statusColor(status) {
   return "background:var(--green-light);color:var(--green-dark);";
 }
 
+
+// v40.32: 高齢募集の初回成約可否を安全に出し分け
+function showElderlyCompanionInputForContract() {
+  syncElderlyCompanionCardVisibility(true);
+  const card = el("elderlyCompanionCard");
+  if (card) card.scrollIntoView({ behavior:"smooth", block:"center" });
+  setStatus("満69歳以下の同席者情報を入力すると、成約を選択できるようになります。", "warn");
+}
+function isElderlyFirstWithoutValidCompanion() {
+  return isElderlyFirstCustomerContext() && !hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} });
+}
+function isElderlyLaterContractContext() {
+  const age = Number(app.customer?.age || 0);
+  const mStatus = app.customer?.meetingStatus || "";
+  return age >= 70 && mStatus !== "初回面談" && hasElderlyContractSelected();
+}
+
+// v40.32: 死亡保障だけ複数契約（円建て・外貨等）を追加できるようにする
+function ensureDeathExtraContracts() {
+  if (!app.recommendations) app.recommendations = {};
+  if (!app.recommendations.death) app.recommendations.death = productLogic("death") || { status:"未提案" };
+  if (!Array.isArray(app.recommendations.death.extraContracts)) app.recommendations.death.extraContracts = [];
+  return app.recommendations.death.extraContracts;
+}
+function getDeathProductOptionsForExtraContract() {
+  try {
+    const settings = (typeof getProductSettings === "function") ? getProductSettings() : {};
+    return getAllProducts()
+      .filter(p => p && p.category === "death")
+      .filter(p => (settings[p.id]?.status || "check") !== "stopped")
+      .map(p => p.name)
+      .filter(Boolean)
+      .filter((name, idx, arr) => arr.indexOf(name) === idx)
+      .sort((a, b) => a.localeCompare(b, "ja"));
+  } catch(e) {
+    return [];
+  }
+}
+function setDeathExtraProductChoice(idx, value) {
+  const list = ensureDeathExtraContracts();
+  if (!list[idx]) return;
+  if (value === "__custom__") {
+    list[idx].productMode = "custom";
+  } else {
+    list[idx].productMode = "select";
+    list[idx].product = value || "";
+  }
+  renderRecommendations();
+  autoSave();
+}
+function addDeathExtraContract() {
+  const list = ensureDeathExtraContracts();
+  list.push({ product:"", productMode:"select", purpose:"", currency:"円建て", insuranceAmount:"", premium:"", status:"成約", memo:"" });
+  renderRecommendations();
+  autoSave();
+}
+function removeDeathExtraContract(idx) {
+  const list = ensureDeathExtraContracts();
+  if (idx >= 0 && idx < list.length && confirm("追加した死亡保障商品を削除しますか？")) {
+    list.splice(idx, 1);
+    renderRecommendations();
+    autoSave();
+  }
+}
+function updateDeathExtraContract(idx, key, value) {
+  const list = ensureDeathExtraContracts();
+  if (!list[idx]) return;
+  list[idx][key] = value;
+  autoSave();
+}
+function renderDeathExtraProductSelector(idx, x) {
+  const options = getDeathProductOptionsForExtraContract();
+  const current = String(x.product || "");
+  const isListed = current && options.includes(current) && x.productMode !== "custom";
+  const selectValue = isListed ? current : (x.productMode === "custom" || current ? "__custom__" : "");
+  const selectHtml = `<select onchange="setDeathExtraProductChoice(${idx}, this.value)">
+      <option value="">--商品管理から選択--</option>
+      ${options.map(o => `<option value="${esc(o)}" ${selectValue===o?'selected':''}>${esc(o)}</option>`).join("")}
+      <option value="__custom__" ${selectValue==='__custom__'?'selected':''}>その他・自由入力</option>
+    </select>`;
+  const inputHtml = selectValue === "__custom__"
+    ? `<input style="margin-top:6px" value="${esc(current)}" oninput="updateDeathExtraContract(${idx},'product',this.value);updateDeathExtraContract(${idx},'productMode','custom')" placeholder="商品名を入力（例：米ドル建終身保険）">`
+    : "";
+  return selectHtml + inputHtml;
+}
+
+function renderDeathExtraContracts(need, r) {
+  if (need !== "death") return "";
+  const list = Array.isArray(r.extraContracts) ? r.extraContracts : [];
+  const purposeOpts = ["葬儀代・整理資金","遺族生活費","教育費","相続・資産承継","その他"];
+  const currencyOpts = ["円建て","米ドル建て","外貨建て","変額","その他"];
+  const statusOpts = ["成約","申込意向あり・次回手続き","設計書持ち帰り","家族に相談","今回は見送り"];
+  return `<div style="background:#f8fafc;border:1.5px dashed #94a3b8;border-radius:10px;padding:12px 14px;margin:12px 0">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:700;color:#1f2937">➕ 死亡保障の追加契約（円建て・ドル建て等）</div>
+      <button type="button" class="btn btn-ghost btn-sm" onclick="addDeathExtraContract()">＋ 死亡保障の商品を追加</button>
+    </div>
+    <div style="font-size:11px;color:#6b7280;margin-bottom:8px">例：円建て終身＝葬儀代、米ドル建終身＝相続対策など、目的が分かれる場合に使います。</div>
+    ${list.length === 0 ? `<div style="font-size:12px;color:#9ca3af">追加契約はありません。</div>` : list.map((x,idx)=>`
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <b style="font-size:12px;color:#065f46">死亡保障 追加${idx+1}</b>
+          <button type="button" class="btn btn-danger btn-sm" onclick="removeDeathExtraContract(${idx})">削除</button>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>商品名</label>${renderDeathExtraProductSelector(idx, x)}</div>
+          <div class="field"><label>目的</label><select onchange="updateDeathExtraContract(${idx},'purpose',this.value)"><option value="">--選択--</option>${purposeOpts.map(o=>`<option ${x.purpose===o?'selected':''}>${esc(o)}</option>`).join("")}</select></div>
+          <div class="field"><label>通貨・タイプ</label><select onchange="updateDeathExtraContract(${idx},'currency',this.value)">${currencyOpts.map(o=>`<option ${x.currency===o?'selected':''}>${esc(o)}</option>`).join("")}</select></div>
+        </div>
+        <div class="grid3">
+          <div class="field"><label>保険金額</label><input value="${esc(x.insuranceAmount||"")}" oninput="updateDeathExtraContract(${idx},'insuranceAmount',this.value)" placeholder="例：300万円"></div>
+          <div class="field"><label>保険料</label><input value="${esc(x.premium||"")}" oninput="updateDeathExtraContract(${idx},'premium',this.value)" placeholder="例：12,000円/月"></div>
+          <div class="field"><label>結果</label><select onchange="updateDeathExtraContract(${idx},'status',this.value)">${statusOpts.map(o=>`<option ${x.status===o?'selected':''}>${esc(o)}</option>`).join("")}</select></div>
+        </div>
+        <div class="field"><label>補足メモ</label><textarea oninput="updateDeathExtraContract(${idx},'memo',this.value)" placeholder="例：相続・資産承継目的で追加提案">${esc(x.memo||"")}</textarea></div>
+      </div>`).join("")}
+  </div>`;
+}
+function buildDeathExtraRowsHtml(contractedNeedsDoc) {
+  const r = app.recommendations?.death || {};
+  const list = Array.isArray(r.extraContracts) ? r.extraContracts : [];
+  const validStatuses = ["成約","申込意向あり・次回手続き"];
+  if (!contractedNeedsDoc.includes("death")) return "";
+  return list.filter(x=>validStatuses.includes(x.status)).map((x,idx)=>{
+    const details = [x.product, x.purpose ? "目的："+x.purpose : "", x.currency ? "通貨・タイプ："+x.currency : "", x.insuranceAmount ? "保険金額："+x.insuranceAmount : "", x.premium ? "保険料："+x.premium : "", x.memo].filter(Boolean).join(" ／ ");
+    return `<tr><td>死亡保障 追加${idx+1}</td><td style="color:#065f46;font-weight:700">${esc(x.status)}</td><td style="font-size:12px;line-height:1.55">${esc(details||"－")}</td></tr>`;
+  }).join("");
+}
+function buildDeathExtraDetailHtml(contractedNeedsDoc) {
+  const r = app.recommendations?.death || {};
+  const list = Array.isArray(r.extraContracts) ? r.extraContracts : [];
+  const validStatuses = ["成約","申込意向あり・次回手続き"];
+  if (!contractedNeedsDoc.includes("death")) return "";
+  return list.filter(x=>validStatuses.includes(x.status)).map((x,idx)=>{
+    const parts = [x.product ? `商品：${x.product}` : "商品未記入", x.purpose ? `目的：${x.purpose}` : "", x.currency ? `通貨・タイプ：${x.currency}` : "", x.insuranceAmount ? `保険金額：${x.insuranceAmount}` : "", x.premium ? `保険料：${x.premium}` : "", x.memo ? `補足：${x.memo}` : ""].filter(Boolean).join("　");
+    return `<p><b>死亡保障 追加${idx+1}：</b>${esc(parts)}</p>`;
+  }).join("");
+}
+
 function switchVariant(tabId, activeIdx, total) {
   for (let i = 0; i < total; i++) {
     const btn = document.getElementById(tabId + "_btn" + i);
@@ -4273,13 +5158,20 @@ function switchVariant(tabId, activeIdx, total) {
 }
 
 function onStatusChange(need, value) {
+  // v40.24: 表示上の補足文が付いた選択肢でも、保存値は正式ステータスへ正規化する
+  if (String(value || "").startsWith("成約")) value = "成約";
+  const selForNormalize = document.getElementById("status_" + need);
+  if (selForNormalize && selForNormalize.value !== value) selForNormalize.value = value;
   const age = Number(app.customer?.age || 0);
   const mStatus = app.customer?.meetingStatus || "";
+  if (age >= 70 && mStatus === "初回面談" && value === "成約" && !hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} })) {
+    value = "未提案";
+    if (selForNormalize) selForNormalize.value = value;
+    showElderlyCompanionInputForContract();
+  }
   if (age >= 70 && mStatus === "初回面談" && value === "成約") {
-    alert("⚠️ 高齢募集ルール確認\n\n70歳以上のお客様の初回面談での成約には、社内の高齢募集ルールに基づく手続きが必要です。\n\n✅ 複数回面談の実施\n✅ 同席者・家族の確認\n✅ 上席への報告・確認\n\n面談ステータスを「2回目面談」以降に変更し、必要な確認を行ったうえで成約手続きを行ってください。");
-    const sel = document.getElementById("status_" + need);
-    if (sel) sel.value = app.recommendations[need]?.status || "未提案";
-    return;
+    syncElderlyCompanionCardVisibility(true);
+    onElderlyCompanionInput(false);
   }
   app.recommendations[need].status = value;
   const b = document.getElementById("badge_" + need);
@@ -4293,6 +5185,15 @@ function onStatusChange(need, value) {
   // 次回アクション・日程フィールド（次回手続き・再提案系すべて）
   const nextDateField = document.getElementById("nextDateField_" + need);
   const showNext = ["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(value);
+  if (!showNext) {
+    app.recommendations[need].nextAction = "";
+    app.recommendations[need].nextDate = "";
+    const nextActionEl = document.getElementById("nextAction_" + need);
+    const nextDateEl = document.getElementById("nextDate_" + need);
+    if (nextActionEl) nextActionEl.value = "";
+    if (nextDateEl) nextDateEl.value = "";
+  }
+  if (value === "成約") clearNextMeetingFieldsAndCustomer();
   if (nextDateField) nextDateField.style.display = showNext ? "" : "none";
   // 変額・投資性商品用の適合性確認欄を表示/非表示
   const suitBox = document.getElementById("suitabilityBox_" + need);
@@ -4319,6 +5220,15 @@ function buildSuitabilityPrintSection(contractedNeeds) { return ""; }
  // ══ 共通：高齢×初回面談判定 ══
 // セッションデータ s と顧客データ c を渡す
 // s.customer に年齢がない旧データは c（顧客マスタ）の年齢で補完
+function hasFamilyAttendanceForElderly(s) {
+  // v40.25: 単なるチェックだけではなく、同席者氏名・続柄・生年月日・満69歳以下・確認チェックまで必須。
+  if (s && Object.prototype.hasOwnProperty.call(s, "elderlyCompanion")) {
+    return hasValidElderlyCompanion({ elderlyCompanion: s.elderlyCompanion || {} });
+  }
+  if (s && s !== app) return false;
+  return hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} });
+}
+
 function isElderlyFirstSession(s, c) {
   const age = Number(
     (s && s.customer && s.customer.age) ||
@@ -4327,7 +5237,7 @@ function isElderlyFirstSession(s, c) {
   const status =
     (s && s.customer && s.customer.meetingStatus) ||
     (c && c.meetingStatus) || "";
-  return age >= 70 && status === "初回面談";
+  return age >= 70 && status === "初回面談" && !hasFamilyAttendanceForElderly(s);
 }
 
 // ══ 共通：高齢×初回面談での「成約」無効判定 ══
@@ -4348,6 +5258,7 @@ function isValidCurrentContract(session, customer, status) {
 // 自動保存：明示的な「保存」ボタンなしでも常に最新状態をlocalStorageへ
 function autoSave() {
   if (!app.customer?.id) return;
+  syncNextMeetingToCustomerFromInputs();
   const state = collectState();
   if (!app._historyId) app._historyId = "h_" + Date.now();
   state._historyId = app._historyId;
@@ -4383,9 +5294,14 @@ function renderRecommendations() {
   // 高齢×初回面談バナー
   const age = Number(app.customer?.age || 0);
   const mStatus = app.customer?.meetingStatus || "";
-  const elderlyBlock = age >= 70 && mStatus === "初回面談";
+  const elderlyFirst = age >= 70 && mStatus === "初回面談";
+  const elderlyBlock = elderlyFirst && !hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} });
   const notice = el("elderlyRecommendNotice");
-  if (notice) notice.classList.toggle("hidden", !elderlyBlock);
+  if (notice) {
+    notice.classList.toggle("hidden", !elderlyBlock);
+    if (elderlyBlock) notice.innerHTML = `⛔ <b>高齢募集ルール：初回面談のため同席者確認前は成約不可</b><br>70歳以上のお客様の初回面談では、満69歳以下のご家族等が同席し、説明内容と申込意向を確認している場合のみ「成約」を選択できます。<br><button type="button" class="btn btn-ghost btn-sm" onclick="showElderlyCompanionInputForContract()" style="margin-top:8px">👪 同席者確認を入力する</button>`;
+  }
+  syncElderlyCompanionCardVisibility(false);
 
   // ── 面談回数カウンター更新 ──
   const sessionBar = el("sessionCounterBar");
@@ -4414,19 +5330,8 @@ function renderRecommendations() {
     el("recommendations").innerHTML = '<div class="note-box info">選択された保障はありません。質問フローから保障を選択してください。</div>';
     return;
   }
-  // 高齢×初回面談で保存済みの「成約」ステータスを強制的に「未提案」に補正
-  if (isElderlyFirstSession({ customer: app.customer }, app.customer)) {
-    let needsSave = false;
-    needs.forEach(need => {
-      const r = app.recommendations[need];
-      if (r && r.status === "成約") {
-        r.status = "未提案";
-        r.contract = "";
-        needsSave = true;
-      }
-    });
-    if (needsSave) autoSave(); // 複数商品でもまとめて1回だけ保存
-  }
+  // v40.27: 高齢×初回でも、満69歳以下の同席者要件を満たす場合は成約を保持する。
+  // 条件未達のまま保存・印刷することは requireAgentConfirm 側で止めるため、ここではステータスを自動で消さない。
   // 70歳以上の顧客に対してV1商品の警告バナーを表示
   const customerAge = Number(app.customer?.age || 0);
   const v1Warning = el("v1AgeWarning");
@@ -4444,6 +5349,10 @@ function renderRecommendations() {
       : { ...logicR, status: "未提案" };
     // renderのたびにapp.recommendationsを最新に保つ
     app.recommendations[need] = r;
+    if (age >= 70 && mStatus === "初回面談" && r.status === "成約" && !hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} })) {
+      r.status = "未提案";
+      app.recommendations[need].status = "未提案";
+    }
 
     const statusOptions = ["未提案","成約","申込意向あり・次回手続き","設計書持ち帰り","家族に相談","次回再提案","今回は見送り"];
     const contractOpts = r.contractOptions || logicR.contractOptions || [];
@@ -4664,8 +5573,9 @@ function renderRecommendations() {
           ${statusOptions.map(s => {
             const age = Number(app.customer?.age || 0);
             const mStatus = app.customer?.meetingStatus || "";
-            const blocked = age >= 70 && mStatus === "初回面談" && s === "成約";
-            return '<option '+(r.status===s?'selected':'')+(blocked?' disabled style="color:#ccc"':'')+'>'+(blocked?'⛔ ':'')+esc(s)+(blocked?' (初回は不可)':'')+'</option>';
+            const hideContract = age >= 70 && mStatus === "初回面談" && s === "成約" && !hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} });
+            if (hideContract) return "";
+            return '<option value="'+esc(s)+'" '+(r.status===s?'selected':'')+'>'+esc(s)+'</option>';
           }).join("")}
         </select>
       </div>
@@ -4802,6 +5712,7 @@ function renderRecommendations() {
         </label>
         <textarea data-need="${esc(need)}" oninput="app.recommendations[this.dataset.need].memo=this.value;clearTimeout(this._t);this._t=setTimeout(autoSave,800)" placeholder="補足があればここに...">${esc(r.memo||"")}</textarea>
       </div>
+      ${need === "death" ? renderDeathExtraContracts(need, r) : ""}
       `}
     </div>`;
   }).join("");
@@ -4812,6 +5723,7 @@ function collectState() {
   if (app.customer) sanitizeModeData(getCustomerKind(app.customer));
   return {
     customer: app.customer, answers: app.answers, needs: app.needs,
+    elderlyCompanion: getElderlyCompanionInfo(),
     queueIds: app.queue.map(q => q.id), index: app.index, recommendations: app.recommendations,    _carriedContracts: app._carriedContracts || [],   // ← 引き継ぎ成約を保存
     intentMemo: val("intentMemo"), intentPolished: val("intentPolished"),
     closingType: app._closingType || "",
@@ -4820,14 +5732,14 @@ function collectState() {
     nextMeetingNote: val("nextMeetingNote") || val("nextMeetingQuickNote") || "",
     checks: (function() {
       const ids = ["checkIntent","checkCompare","checkReason",
-                   "checkImportant","checkElderly","checkElderlyMulti","checkResult",
+                   "checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult",
                    "agentConfirmCheck"];
       const result = {};
       ids.forEach(id => {
         const node = el(id);
         // DOMが存在する場合は現在の画面状態を正とする。
         // これにより、過去にチェック済みだった項目を後から外した場合も保存できる。
-        result[id] = node ? !!node.checked : !!(app._savedChecks && app._savedChecks[id]);
+        result[id] = getSavedCheckValue(id, app._savedChecks || {});
       });
       return result;
     })(),
@@ -4851,6 +5763,7 @@ function collectState() {
 }
 
 function saveInterview() {
+  syncNextMeetingToCustomerFromInputs();
   const state = collectState();
   // _historyId を引き継ぐ（新規面談時は新しいIDを付与）
   if (!app._historyId) app._historyId = "h_" + Date.now();
@@ -4859,6 +5772,8 @@ function saveInterview() {
   if (app.customer?.id) saveToHistory(app.customer.id, state);
   // 後方互換としてグローバルにも保存
   safeSaveLocalStorage(INTERVIEW_KEY, JSON.stringify(state));
+  renderCustomerList();
+  renderDashboard();
   setStatus("💾 面談内容を保存しました。");
 }
 
@@ -4903,19 +5818,30 @@ function buildCleanDistributionHtml() {
   if (mnav) mnav.classList.add("active");
 
   let html = "<!DOCTYPE html>\n" + clone.outerHTML;
+
+  // 既存のクリーン初期化スクリプトが残っていると、古いCLEAN_KEYで初期化がスキップされるため除去してから入れ直す。
+  html = html.replace(/<script>\s*\/\/ クリーン配布版：[^<]*localStorage[^<]*[\s\S]*?\}\)\(\);\s*<\/script>\s*/g, "");
+
+  const cleanId = "v" + (typeof APP_VERSION !== "undefined" ? APP_VERSION.replace(/\./g, "_") : "unknown") + "_" + Date.now();
   const cleanBootScript = `<script>
-// クリーン配布版：初回起動時に面談ナビ関連のlocalStorageだけを削除します。
+// クリーン配布版：この配布ファイルを初めて開いた時だけ、面談ナビ関連の保存データを削除します。
+// 旧クリーン版の初期化キーが残っていても、このファイル専用キーで必ず初回初期化します。
 (function(){
-  var CLEAN_KEY = "ins_nav_clean_distribution_" + (typeof APP_VERSION !== "undefined" ? APP_VERSION : "unknown") + "_done";
-  if (localStorage.getItem(CLEAN_KEY)) return;
-  var prefixes = ["ins_nav_", "mendan_", "menda_navi_"];
-  var remove = [];
-  for (var i = 0; i < localStorage.length; i++) {
-    var k = localStorage.key(i);
-    if (k && prefixes.some(function(prefix){ return k.indexOf(prefix) === 0; })) remove.push(k);
+  var CLEAN_ID = "${cleanId}";
+  var CLEAN_KEY = "ins_nav_clean_distribution_" + CLEAN_ID + "_done";
+  try {
+    if (localStorage.getItem(CLEAN_KEY) === "1") return;
+    var prefixes = ["ins_nav_", "mendan_", "menda_navi_"];
+    var remove = [];
+    for (var i = 0; i < localStorage.length; i++) {
+      var k = localStorage.key(i);
+      if (k && prefixes.some(function(prefix){ return k.indexOf(prefix) === 0; })) remove.push(k);
+    }
+    remove.forEach(function(k){ localStorage.removeItem(k); });
+    localStorage.setItem(CLEAN_KEY, "1");
+  } catch(e) {
+    console.warn("クリーン配布版の初期化に失敗しました。", e);
   }
-  remove.forEach(function(k){ localStorage.removeItem(k); });
-  localStorage.setItem(CLEAN_KEY, "1");
 })();
 <\/script>`;
   html = html.replace("</head>", cleanBootScript + "\n</head>");
@@ -4935,6 +5861,27 @@ function downloadCleanCopy() {
   setStatus("🧹 個人情報を除去したクリーン配布版をダウンロードしました。");
 }
 
+
+function makeSecurityBackupEnvelope(payload) {
+  if (!APP_SECURITY_ENABLED) return payload;
+  const json = JSON.stringify(payload);
+  return {
+    _encryptedBackup: true,
+    _app: "比較推奨ナビ",
+    _version: APP_VERSION,
+    _createdAt: new Date().toISOString(),
+    data: _secEncryptText(json)
+  };
+}
+function readSecurityBackupEnvelope(obj) {
+  if (obj && obj._encryptedBackup && obj.data) {
+    const plain = _secDecryptText(obj.data);
+    if (!plain) throw new Error("暗号化バックアップを復号できません。アプリ内のパスワード設定を確認してください。");
+    return JSON.parse(plain);
+  }
+  return obj;
+}
+
 function exportData() {
   saveInterview();
   const state = collectState();
@@ -4942,7 +5889,8 @@ function exportData() {
   const name = c ? (customerDisplayName(c) || c.name || "未登録").replace(/\s/g, "_") : "未登録";
   const date = new Date().toISOString().slice(0, 10);
   const filename = `比較推奨ナビ_${name}_${date}.json`;
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+  const exportPayload = makeSecurityBackupEnvelope(state);
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
@@ -4970,7 +5918,8 @@ function exportAllData() {
     histories: allHistories
   };
   const filename = `比較推奨ナビ_全顧客バックアップ_${agentName}_${date}.json`;
-  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  const exportPayload = makeSecurityBackupEnvelope(backup);
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
@@ -4985,7 +5934,8 @@ function importAllData(input) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
-      const backup = JSON.parse(e.target.result);
+      let backup = JSON.parse(e.target.result);
+      backup = readSecurityBackupEnvelope(backup);
       // 全顧客バックアップ形式かチェック
       if (!backup._backupVersion || !backup.customers || !backup.histories) {
         // 旧形式（単一顧客）は既存のimportDataへ
@@ -5015,6 +5965,9 @@ function importAllData(input) {
       if (backup._agencyName && !localStorage.getItem("ins_nav_agency_name")) {
         localStorage.setItem("ins_nav_agency_name", backup._agencyName);
       }
+      if (backup._agentName && !localStorage.getItem("ins_nav_agent_name")) {
+        localStorage.setItem("ins_nav_agent_name", backup._agentName);
+      }
       sanitizeAllCarriedContracts(); // インポート直後に混入データを除去
       renderCustomerList();
       renderDashboard();
@@ -5035,6 +5988,7 @@ function importData(input) {
   reader.onload = e => {
     try {
       let s = JSON.parse(e.target.result);
+      s = readSecurityBackupEnvelope(s);
       s = patchLegacyState(s);
       if (!s.customer && !s.answers) throw new Error("形式が違います");
 
@@ -5084,6 +6038,8 @@ function loadInterview() {
   app.queue = (s.queueIds || ["contractType"]).map(id => Object.values(questionTemplates).find(q => q.id === id)).filter(Boolean);
   app.index = s.index || 0;
   app.recommendations = s.recommendations || {};
+  app.elderlyCompanion = s.elderlyCompanion || {};
+  restoreElderlyCompanionUI(app.elderlyCompanion);
   app._historyId = s._historyId || s.savedAt || "";
   app._savedSigns = { customer: s.signs?.customer || "", agent: s.signs?.agent || "" };
   app._savedChecks = { ...(s.checks || {}) };
@@ -5097,12 +6053,13 @@ function loadInterview() {
   el("importantPolished").value = s.importantPolished || "";
   Object.keys(s.checks || {}).forEach(id => {
     if (el(id)) {
-      el(id).checked = s.checks[id];
+      const v = getSavedCheckValue(id, s.checks || {});
+      el(id).checked = v;
       const label = el(id).closest(".check-item");
       if (label) {
-        label.classList.toggle("checked", s.checks[id]);
+        label.classList.toggle("checked", v);
         const mark = label.querySelector(".check-mark");
-        if (mark) mark.textContent = s.checks[id] ? "✅" : "☐";
+        if (mark) mark.textContent = v ? "✅" : "☐";
       }
     }
   });
@@ -5334,6 +6291,7 @@ function restoreCustomerTypeUI(type) {
 const MEMO_CHIPS = {
   cancer_worry:    "がんへの不安が強い。治療費の長期化が心配。診断時のまとまった一時金と継続的な治療給付の保障を重視している。",
   medical_worry:   "入院・手術への備えが不十分と感じている。先進医療にも関心あり。現在の保険の保障内容の確認と不足分の補充を希望。",
+  death_worry:     "万一の際の家族の生活費や葬儀代・整理資金、相続を踏まえた死亡保障について相談あり。必要保障額と保障期間を確認した。",
   income_worry:    "病気やケガで働けなくなった場合の収入確保が不安。毎月一定額の保障を希望。就業不能状態での生活費をカバーしたい。",
   asset_interest:  "老後資金の準備を始めたい。NISAも検討中だが保険での積立にも関心あり。元本割れリスクが気になる。長期での資産形成を希望。",
   elderly_care:    "介護・認知症への備えを考えたい。家族への負担を減らしたい。要介護状態になった際のまとまった資金と継続的な年金の両方に関心あり。",
@@ -5540,6 +6498,13 @@ function saveAgencyName() {
 
 function saveNextMeetingQuick() {
   if (!app.customer) { setStatus("顧客が選択されていません。", "warn"); return; }
+  if (shouldClearNextMeetingForFinalContract()) {
+    clearNextMeetingFieldsAndCustomer();
+    renderCustomerList();
+    renderDashboard();
+    setStatus("✅ 成約済みのため、次回面談予定はクリアしました。");
+    return;
+  }
   const date = val("nextMeetingQuick");
   const note = val("nextMeetingQuickNote");
   if (!date) { setStatus("日付を入力してください。", "warn"); return; }
@@ -5553,21 +6518,33 @@ function saveNextMeetingQuick() {
   if (idx >= 0) { list[idx] = { ...list[idx], nextMeeting: date, nextMeetingNote: note }; saveAllCustomers(list); }
   saveInterview();
   renderCustomerList();
+  renderDashboard();
   setStatus(`📅 次回面談予定（${date}）を保存しました。`);
 }
 
 function saveNextMeeting() {
   if (!app.customer) { setStatus("顧客が選択されていません。", "warn"); return; }
+  if (shouldClearNextMeetingForFinalContract()) {
+    clearNextMeetingFieldsAndCustomer();
+    renderCustomerList();
+    renderDashboard();
+    setStatus("✅ 成約済みのため、次回面談予定はクリアしました。");
+    return;
+  }
   const date = val("nextMeetingSign");
   const note = val("nextMeetingNote");
-  app.customer.nextMeeting = date || app.customer.nextMeeting;
+  app.customer.nextMeeting = date;
   app.customer.nextMeetingNote = note;
+  if (el("nextMeeting")) el("nextMeeting").value = date;
+  if (el("nextMeetingQuick")) el("nextMeetingQuick").value = date;
+  if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = note;
   // 顧客リストに反映
   const list = getAllCustomers();
   const idx = list.findIndex(x => x.id === app.customer.id);
   if (idx >= 0) { list[idx] = { ...list[idx], nextMeeting: date, nextMeetingNote: note }; saveAllCustomers(list); }
   saveInterview();
   renderCustomerList();
+  renderDashboard();
   setStatus(`次回面談予定（${date || "未定"}）を保存しました。`);
 }
 
@@ -5716,7 +6693,8 @@ function generateDocument(overrideSigns, overrideChecks) {
   const _agentSignText = (localStorage.getItem(AGENT_SIGN_KEY) || "").trim();
   // チェック：overrideChecks → app._savedChecks → DOM の順で参照
   const _checks = overrideChecks || app._savedChecks || {};
-  const _yn = (id) => (_checks[id] || checked(id)) ? "✓ 確認済み" : "－ 未確認";
+  const _isChecked = (id) => getSavedCheckValue(id, _checks);
+  const _yn = (id) => _isChecked(id) ? "✓ 確認済み" : "－ 未確認";
   const c = app.customer || {};
 
   // ── バグ①修正：当初意向キーを日本語ラベルに変換 ──
@@ -5724,10 +6702,12 @@ function generateDocument(overrideSigns, overrideChecks) {
     cancer: "がんになった時のこと",
     medical: "入院や手術のこと",
     kids:   "子どもの養育費・教育費",
-    family: "家族の生活費",
+    family: "万一のときの家族の生活費",
+    funeral: "葬儀代・整理資金",
+    inheritance: "相続・資産承継",
     income: "働けなくなった時の収入",
-    future: "老後・将来のお金",
-    asset:  "資産形成・貯蓄",
+    future: "老後生活・年金への備え",
+    asset:  "資産形成・お金を増やしたい",
     care:   "介護・認知症への備え",
     corporate: "法人・経営者保険",
     // 法人ヒアリング
@@ -5780,7 +6760,7 @@ function generateDocument(overrideSigns, overrideChecks) {
     const r = app.recommendations[need] || {};
     const status = r.status || "未提案";
     if (!contractStatuses.includes(status)) return false;
-    if (isInvalidElderlyFirstContract({ customer: app.customer }, app.customer, status)) return false;
+    if (isInvalidElderlyFirstContract({ customer: app.customer, elderlyCompanion: app.elderlyCompanion || {} }, app.customer, status)) return false;
     return true;
   });
   const pendingNeeds_doc = thisSessionNeeds.filter(need => {
@@ -5789,7 +6769,7 @@ function generateDocument(overrideSigns, overrideChecks) {
   });
 
   // 3章：今回「成約・申込意向あり」の保障のみ（FSA意向確認書の本体）
-  const rows = contractedNeeds_doc.length > 0
+  let rows = contractedNeeds_doc.length > 0
     ? contractedNeeds_doc.map(need => {
         const r = app.recommendations[need] || {};
         const status = r.status || "未提案";
@@ -5817,6 +6797,7 @@ function generateDocument(overrideSigns, overrideChecks) {
         </tr>`;
       }).join("")
     : `<tr><td colspan="3" style="color:#6b7280;text-align:center">今回成約・申込意向の保障はありません</td></tr>`;
+  rows += buildDeathExtraRowsHtml(contractedNeeds_doc);
 
   // 3-2章：次回再提案・見送りは「面談記録」として別表（意向確認書の本体ではない）
   const pendingRows = pendingNeeds_doc.length > 0
@@ -5837,7 +6818,7 @@ function generateDocument(overrideSigns, overrideChecks) {
     : "";
 
   // 2章：今回成約した保障の推奨理由を詳記
-  const detail = contractedNeeds_doc.length > 0
+  let detail = contractedNeeds_doc.length > 0
     ? contractedNeeds_doc.map(need => {
         const r = app.recommendations[need] || {};
         const status = r.status || "未提案";
@@ -5852,22 +6833,31 @@ function generateDocument(overrideSigns, overrideChecks) {
         return `<p><b>${esc(needLabels[need])}：</b>${esc(r.reason||"")}<br>　${productDisplay}　結果：<b style="color:#065f46">${esc(status)}</b>${compareDisplay}${memoDisplay}${suitDisplay}</p>`;
       }).join("")
     : "<p>今回成約・申込意向の保障はありません。</p>";
+  detail += buildDeathExtraDetailHtml(contractedNeeds_doc);
 
-  const elderlyRow = Number(c.age) >= 70 ? `
-    <tr><td>⑤【高齢対応】複数回面談を実施していることを確認した</td><td>${_yn("checkElderly")}</td></tr>` : "";
+  const elderlyCompanionInfo = app.elderlyCompanion || {};
+  const hasElderlyCompanionRecord = isElderlyFirstCustomerContext() && hasValidElderlyCompanion({ elderlyCompanion: elderlyCompanionInfo }) && contractedNeeds_doc.length > 0;
+  const elderlyCompanionSection = hasElderlyCompanionRecord ? buildElderlyCompanionRecordHtml(elderlyCompanionInfo) : "";
+  const isFirstForDoc = (c.meetingStatus || "") === "初回面談";
+  const hasContractForDoc = contractedNeeds_doc.length > 0;
+  const elderlyRow = Number(c.age) >= 70 && hasContractForDoc ? (hasElderlyCompanionRecord
+    ? `<tr><td>⑤【高齢対応】満69歳以下のご家族等が同席し、説明内容および申込意向を確認した</td><td>✓ 確認済み（${esc(elderlyCompanionInfo.name||"")} 様・満${esc(elderlyCompanionInfo.age ?? calculateAgeFromBirth(elderlyCompanionInfo.birth))}歳）</td></tr>`
+    : (!isFirstForDoc ? `<tr><td>⑤【高齢対応】複数回面談を実施し、前回説明内容と本日の申込意向を確認した</td><td>${_yn("checkElderly")}</td></tr>` : "")) : "";
 
   // 次回提案予定の表示
-  const nextMeetingDate = app.customer?.nextMeeting || val("nextMeetingSign") || val("nextMeetingQuick") || "";
-  const nextMeetingNote = app.customer?.nextMeetingNote || val("nextMeetingNote") || val("nextMeetingQuickNote") || "";
-  const hasNextMeeting = nextMeetingDate || Object.values(app.recommendations||{}).some(r =>
-    ["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status));
+  const hasFollowupForDoc = Object.values(app.recommendations||{}).some(r =>
+    ["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status));
+  const nextMeetingDate = hasFollowupForDoc ? (app.customer?.nextMeeting || val("nextMeetingSign") || val("nextMeetingQuick") || "") : "";
+  const nextMeetingNote = hasFollowupForDoc ? (app.customer?.nextMeetingNote || val("nextMeetingNote") || val("nextMeetingQuickNote") || "") : "";
+  const hasNextMeeting = hasFollowupForDoc && (nextMeetingDate || nextMeetingNote || Object.values(app.recommendations||{}).some(r =>
+    ["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status)));
   const nextMeetingSection = hasNextMeeting ? `
     <div class="print-section print-section-flow">
       <h3>5-2. 次回提案予定</h3>
       <table>
         ${nextMeetingDate ? `<tr><td style="width:40%">次回面談予定日</td><td>${esc(nextMeetingDate)}</td></tr>` : ""}
         ${nextMeetingNote ? `<tr><td>次回テーマ・メモ</td><td>${esc(nextMeetingNote)}</td></tr>` : ""}
-        ${Object.entries(app.recommendations||{}).filter(([,r])=>["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status))
+        ${Object.entries(app.recommendations||{}).filter(([,r])=>["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status))
           .map(([need,r])=>{
             const cleanMemo = dedupeSentencesV31(r.memo || "");
             return `<tr><td>${esc((needLabels||{})[need]||need)}</td><td>${esc(r.status)}${cleanMemo?`（${esc(cleanMemo)}）`:""}</td></tr>`;
@@ -5988,6 +6978,7 @@ function generateDocument(overrideSigns, overrideChecks) {
         ${formatPrintLongText(val("intentPolished")||val("intentMemo")||"")}
       </div>
     </div>
+    ${elderlyCompanionSection}
     <div class="print-section print-section-avoid">
       <h3>5. 確認事項</h3>
       <table>
@@ -6022,7 +7013,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       </div>
     </div>
       <div class="print-agent-confirm-row" style="border:1.5px solid #374151;border-radius:6px;padding:10px 14px;margin-bottom:16px;background:#f9fafb;font-size:12px" contenteditable="false">
-        <button type="button" class="print-confirm-check" data-checked="${(_checks.agentConfirmCheck || document.getElementById("agentConfirmCheck")?.checked) ? "1" : "0"}" onclick="togglePrintConfirmCheck(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-right:8px;border:1.5px solid #374151;border-radius:3px;background:${(_checks.agentConfirmCheck || document.getElementById("agentConfirmCheck")?.checked) ? "#f0fdf4" : "#fff"};color:#111;font-size:15px;font-weight:700;vertical-align:middle;cursor:pointer">${(_checks.agentConfirmCheck || document.getElementById("agentConfirmCheck")?.checked) ? "✓" : ""}</button>
+        <button type="button" class="print-confirm-check" data-checked="${_isChecked("agentConfirmCheck") ? "1" : "0"}" onclick="togglePrintConfirmCheck(this)" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;margin-right:8px;border:1.5px solid #374151;border-radius:3px;background:${_isChecked("agentConfirmCheck") ? "#f0fdf4" : "#fff"};color:#111;font-size:15px;font-weight:700;vertical-align:middle;cursor:pointer">${_isChecked("agentConfirmCheck") ? "✓" : ""}</button>
         <span style="font-weight:600">意向確認書の内容についてお客様へ説明を行い、お客様の加入意向および記載内容を確認しました。</span>
       </div>
     </div>
@@ -6261,8 +7252,9 @@ function getRecommendationLinesV31() {
     const product = r.contract || r.product || "";
     const reason = r.reason || "";
     const memo = r.memo || "";
-    const nextAction = r.nextAction || "";
-    const nextDate = r.nextDate || "";
+    const isFollowupStatus = ["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(status);
+    const nextAction = isFollowupStatus ? (r.nextAction || "") : "";
+    const nextDate = isFollowupStatus ? (r.nextDate || "") : "";
     const compareTargets = r.compareTargets || "";
     const compareAxis = r.compareAxis || "";
     const notRecommendedReason = r.notRecommendedReason || "";
@@ -6298,6 +7290,13 @@ function mapAnswerLabelV32(key, value) {
     if (v.includes("診断時")) return "診断時のまとまった一時金";
     if (v.includes("長期化")) return "治療が長期化した場合の給付";
     if (v.includes("両方")) return "診断一時金と治療給付の両方";
+  }
+  if (key === "deathFuneralNeed") {
+    if (v.includes("200万円")) return "葬儀代・整理資金として200万円前後を目安にしたい";
+    if (v.includes("300万円")) return "葬儀代・整理資金として300万円前後まで備えたい";
+    if (v.includes("準備済み")) return "葬儀代・整理資金は既契約や預貯金も踏まえて確認したい";
+    if (v.includes("遺族生活費")) return "葬儀代より遺族生活費を重視したい";
+    return "葬儀代・整理資金の必要額を説明確認したい";
   }
   if (key === "retirementConcern") {
     if (v.includes("年金")) return "公的年金だけで老後資金が足りるか";
@@ -6362,7 +7361,7 @@ function inferFactsV31(rawMemo) {
   // activeNeeds はすでに carriedNeedSet 除外済み。メモ内容でも引き継ぎ保障の不安は重複させない
   if ((containsV31(memo, ["がん", "抗がん", "治療費", "上皮内がん"]) && !carriedNeedSet.has("cancer")) || activeNeeds.includes("cancer")) concerns.push("がん保障の不足");
   if ((containsV31(memo, ["入院", "手術", "先進医療", "医療"]) && !carriedNeedSet.has("medical")) || activeNeeds.includes("medical")) concerns.push("入院・手術などの医療費負担");
-  if ((containsV31(memo, ["死亡", "万一", "家族の生活", "教育費", "葬儀"]) && !carriedNeedSet.has("death")) || activeNeeds.includes("death")) concerns.push("万一の場合のご家族の生活資金");
+  if ((containsV31(memo, ["死亡", "万一", "家族の生活", "教育費", "葬儀"]) && !carriedNeedSet.has("death")) || activeNeeds.includes("death")) concerns.push(answers.deathFuneralNeed && !String(answers.deathFuneralNeed).includes("遺族生活費") ? "葬儀代・整理資金への備え" : "万一の場合のご家族の生活資金");
   if ((containsV31(memo, ["働けない", "就業不能", "収入", "給与", "ローン"]) && !carriedNeedSet.has("income")) || activeNeeds.includes("income")) concerns.push("働けなくなった場合の収入減少");
   if (containsV31(memo, ["老後", "年金", "資産", "NISA", "運用", "教育資金"]) || activeNeeds.includes("asset") || activeNeeds.includes("retirement")) concerns.push("将来資金・老後資金の準備");
   if (containsV31(memo, ["介護", "認知症", "要介護"]) || activeNeeds.includes("care")) concerns.push("介護・認知症への備え");
@@ -6373,6 +7372,7 @@ function inferFactsV31(rawMemo) {
     ["cancerEpithelial", answers.cancerEpithelial],
     ["medicalPriority", answers.medicalPriority],
     ["deathPurpose", answers.deathPurpose],
+    ["deathFuneralNeed", answers.deathFuneralNeed],
     ["deathPeriod", answers.deathPeriod],
     ["incomeAmount", answers.incomeAmount],
     ["incomePeriod", answers.incomePeriod],
@@ -6411,9 +7411,12 @@ function inferFactsV31(rawMemo) {
 
   const nextActions = [];
   recs.forEach(r => {
-    if (r.nextAction) nextActions.push(r.nextAction + (r.nextDate ? `（${r.nextDate}予定）` : ""));
+    if (["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status) && r.nextAction) {
+      nextActions.push(r.nextAction + (r.nextDate ? `（${r.nextDate}予定）` : ""));
+    }
   });
-  if (containsV31(memo, ["資産形成", "老後", "もっと詳しく", "次回"])) {
+  const hasFollowup = recs.some(r => ["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status));
+  if (hasFollowup && containsV31(memo, ["資産形成", "老後", "もっと詳しく", "次回"])) {
     nextActions.push("資産形成・老後資金について次回詳しく確認");
   }
   if (containsV31(memo, ["証券", "既契約"])) nextActions.push("現在ご加入中の保険証券を確認のうえ比較");
@@ -6536,7 +7539,7 @@ function localPolishV31(memo, contractSummary) {
   const customerName = customer.name ? customer.name + "様" : "お客様";
   const current = (f.recs || []).filter(r => !r.carried);
 
-  const _polishSess = { customer: app.customer || {} };
+  const _polishSess = { customer: app.customer || {}, elderlyCompanion: app.elderlyCompanion || {} };
   const contracted = current.filter(r =>
     isValidCurrentContract(_polishSess, app.customer, r.status)
   );
@@ -6614,7 +7617,15 @@ function localPolishV31(memo, contractSummary) {
     } else if (label.includes("介護") || label.includes("認知")) {
       anxietyText = `${also}将来の介護・認知症状態への備えについてご不安をお持ちでした。`;
     } else if (label.includes("死亡") || label.includes("収入保障")) {
-      anxietyText = `${also}万一の際のご家族の生活資金への備えをご希望でした。`;
+      const purpose = app.answers?.deathPurpose || "";
+      const funeral = app.answers?.deathFuneralNeed || "";
+      if (String(purpose).includes("相続")) {
+        anxietyText = `${also}万一の際の相続・資産承継への備えをご希望でした。`;
+      } else if (String(purpose).includes("葬儀") || (funeral && !String(funeral).includes("遺族生活費"))) {
+        anxietyText = `${also}万一の際の葬儀代・整理資金への備えをご希望でした。`;
+      } else {
+        anxietyText = `${also}万一の際のご家族の生活資金への備えをご希望でした。`;
+      }
     } else {
       anxietyText = `${also}${label}についてご確認をご希望でした。`;
     }
@@ -6978,8 +7989,8 @@ function openProductDetailModal(id) {
   if (!p) return;
   const categoryLabels = {
     cancer:"がん保険", medical:"医療保険", death:"死亡保障",
-    income:"収入保障・就業不能", asset:"資産形成・変額",
-    retirement:"老後資金・年金", care:"介護・認知症", corporate_only:"法人専用"
+    income:"就業不能・生活保障", asset:"資産形成・運用",
+    retirement:"老後・年金", care:"介護・認知症", corporate_only:"法人向け"
   };
   const settings = getProductSettings();
   const s = settings[p.id] || { status:"check", memo:"" };
@@ -7514,7 +8525,7 @@ SOMPOひまわり生命の主力医療保険。入院日額給付金を基本保
 ・変額保険販売資格必須<br>
 ・元本割れリスクの説明義務あり<br>
 ・為替リスクが生じるファンドを選択した場合の追加説明を忘れずに`},
-  { id:"s_ichiji", proposalNeeds:["hojin_welfare"],    company:"sony", companyLabel:"ソニー生命", category:"retirement", name:"指定通貨建積立利率更改型一時払終身保険（無告知型・無配当）", type:"対面専用", note:"円建・米ドル建を選択可。無告知（円建：0〜90歳、米ドル建：5〜90歳）。積立利率保証期間10・20・30年。相続対策・退職金運用。為替リスク説明必須（外貨の場合）。" , detail:`<b>📌 商品概要</b><br>
+  { id:"s_ichiji", proposalNeeds:["death","asset","retirement","hojin_welfare"],    company:"sony", companyLabel:"ソニー生命", category:"death", name:"指定通貨建積立利率更改型一時払終身保険（無告知型・無配当）", type:"対面専用", note:"円建・米ドル建を選択可。無告知（円建：0〜90歳、米ドル建：5〜90歳）。積立利率保証期間10・20・30年。相続対策・退職金運用。為替リスク説明必須（外貨の場合）。" , detail:`<b>📌 商品概要</b><br>
 円建または米ドル建を選択できる積立利率更改型の一時払終身保険（無告知・無配当）。積立利率が保証期間ごとに見直される。<br><br>
 <b>🔷 主な特徴</b><br>
 ・<b>無告知</b>（円建て：0〜90歳、米ドル建て：5〜90歳）<br>
@@ -7884,6 +8895,9 @@ function toggleAgentConfirm() {
 
 function onAgentConfirmChange() {
   const checked = document.getElementById("agentConfirmCheck")?.checked;
+  if (!app._savedChecks) app._savedChecks = {};
+  app._savedChecks.agentConfirmCheck = !!checked;
+  app._printConfirmChecked = !!checked;
   const block   = document.getElementById("agentConfirmBlock");
   const icon    = document.getElementById("agentConfirmBoxIcon");
   const errDiv  = document.getElementById("agentConfirmError");
@@ -7902,9 +8916,98 @@ function onAgentConfirmChange() {
 function syncSuitabilityFromDom() {}
 function validateSuitabilityBeforeFinal(action) { return true; }
 
+function validateElderlyCompanionBeforeFinal(action) {
+  if (!isElderlyFirstCustomerContext()) return true;
+  const hasContract = hasElderlyContractSelected();
+  if (!hasContract) return true;
+  if (hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} })) return true;
+  syncElderlyCompanionCardVisibility(true);
+  const card = el("elderlyCompanionCard");
+  if (card) card.scrollIntoView({ behavior:"smooth", block:"center" });
+  setStatus("⚠️ 高齢募集の初回成約には、満69歳以下の同席者情報と確認チェックが必要です。", "warn");
+  alert("⚠️ 高齢募集ルール確認\n\n初回面談で成約する場合は、満69歳以下の同席者氏名・続柄・生年月日、および説明内容・申込意向の確認チェックを入力してください。\n\n入力できない場合は『申込意向あり・次回手続き』または『家族に相談』を選択してください。");
+  return false;
+}
+
+// v40.35: v40.34で呼び出し先が未定義だったため、
+// 「意向確認書を生成」ボタンが無反応になる不具合を修正。
+// 70歳以上・2回目以降で成約する場合のみ、複数回面談確認チェックを必須にする。
+function validateElderlyMultiMeetingBeforeFinal(action) {
+  const age = Number(app.customer?.age || 0);
+  const status = app.customer?.meetingStatus || "";
+  const isFirst = status === "初回面談";
+  const hasContract = hasElderlyContractSelected();
+  if (!(age >= 70 && !isFirst && hasContract)) return true;
+
+  const cb = el("checkElderly");
+  if (cb && cb.checked) return true;
+
+  if (typeof updateCheckLabels === "function") updateCheckLabels();
+  if (typeof updateCheckProgress === "function") updateCheckProgress();
+  const row = el("elderlyCheckRow");
+  if (row) {
+    row.classList.remove("hidden");
+    row.style.borderColor = "#dc2626";
+    row.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  setStatus("⚠️ 高齢募集の2回目以降成約には、複数回面談確認チェックが必要です。", "warn");
+  alert("⚠️ 高齢募集ルール確認\n\n70歳以上のお客様の2回目以降の成約では、確認チェックリストの『複数回面談を実施し、前回説明内容と本日の申込意向を確認した』にチェックしてください。");
+  return false;
+}
+
+
+// v40.34: 署名画面の「意向確認書を生成」ボタンから、必ず生成後に印刷ページへ遷移する共通処理。
+// 履歴参照からは表示できるのに、最終ボタンから表示されない事故を防ぐため、
+// チェック・署名をDOMから確定し、再生成を明示した上でprintPageへ移動する。
+function collectCurrentChecksForPrint() {
+  const ids = ["checkIntent","checkCompare","checkReason","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult","agentConfirmCheck"];
+  const result = { ...(app._savedChecks || {}) };
+  ids.forEach(id => {
+    const node = el(id);
+    if (node) result[id] = getSavedCheckValue(id, result);
+  });
+  // 募集人確認は印刷用のチェック表示にも使うため、明示的に同期する。
+  result.agentConfirmCheck = !!(el("agentConfirmCheck")?.checked || result.agentConfirmCheck || app._printConfirmChecked);
+  app._savedChecks = { ...(app._savedChecks || {}), ...result };
+  return result;
+}
+
+function collectCurrentSignsForPrint() {
+  const current = {
+    customer: signatureData("customerSign") || (app._savedSigns?.customer || ""),
+    agent: signatureData("agentSign") || (app._savedSigns?.agent || "")
+  };
+  app._savedSigns = { ...(app._savedSigns || {}), ...current };
+  return current;
+}
+
+function generateDocumentFromSignPage() {
+  if (!requireAgentConfirm("意向確認書の生成")) return;
+  try {
+    const checks = collectCurrentChecksForPrint();
+    const signs = collectCurrentSignsForPrint();
+    // 以前の編集済みHTMLや古い表示に引っ張られず、現在の入力内容から必ず作り直す。
+    app._forceRegenerateDocument = true;
+    generateDocument(signs, checks);
+    showPage("printPage");
+    // 生成直後の状態を履歴にも残す。保存後に画面が戻らないよう、最後にprintPageを再指定する。
+    try { saveInterview(); } catch(saveErr) { console.warn("save after print generation failed", saveErr); }
+    showPage("printPage");
+    setStatus("✅ 意向確認書を生成しました。印刷・PDF保存できます。");
+  } catch(e) {
+    console.error("generateDocumentFromSignPage error:", e);
+    setStatus("意向確認書の生成に失敗しました。入力内容を保存してから、もう一度お試しください。", "err");
+    alert("意向確認書の生成に失敗しました。\n入力内容を保存してから、もう一度お試しください。");
+  } finally {
+    app._forceRegenerateDocument = false;
+  }
+}
+
 // チェック未完了なら警告表示してfalseを返す
 function requireAgentConfirm(action) {
   if (!validateSuitabilityBeforeFinal(action)) return false;
+  if (!validateElderlyCompanionBeforeFinal(action)) return false;
+  if (!validateElderlyMultiMeetingBeforeFinal(action)) return false;
   const checked = document.getElementById("agentConfirmCheck")?.checked;
   if (checked) return true;
   // エラー表示
@@ -8294,8 +9397,8 @@ function renderProductList() {
 
   const categoryLabels = {
     cancer:"がん保険", medical:"医療保険", death:"死亡保障",
-    income:"収入保障・就業不能", asset:"資産形成・変額",
-    retirement:"老後資金・年金", care:"介護・認知症", corporate_only:"法人専用"
+    income:"就業不能・生活保障", asset:"資産形成・運用",
+    retirement:"老後・年金", care:"介護・認知症", corporate_only:"法人向け"
   };
 
   container.innerHTML = Object.entries(groups).map(([company, products]) => `
@@ -8529,8 +9632,9 @@ window.addEventListener("resize", () => {
 
 </script>
 
-<div id="toastNotif" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgb(146, 64, 14); color: rgb(255, 255, 255); padding: 10px 20px; border-radius: 24px; font-size: 14px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; max-width: 90vw; text-align: center; box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 20px;"></div>
-</body></html>
-<!-- v40.8: 会社別確認チェックを画面非表示化、確認チェックリストの二重チェック表示を削除、変額・外貨建等の確認欄を別管理化。 -->
+<div id="toastNotif" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgb(146, 64, 14); color: rgb(255, 255, 255); padding: 10px 20px; border-radius: 24px; font-size: 14px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; max-width: 90vw; text-align: center; box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 20px;">👤 担当者名を設定してください（画面上部の「担当者設定」欄）</div>
 
-<!-- v40.10-final: 引き継ぎ面談後の質問フロー再表示、法人/個人別の保障追加、提案画面へ戻る導線を補強。 -->
+
+
+
+</body></html>
