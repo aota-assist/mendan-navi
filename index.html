@@ -1860,7 +1860,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.38";
+const APP_VERSION = "40.39";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -2136,25 +2136,53 @@ function addSecurityLogoutButton() {
   if (!APP_SECURITY_ENABLED) return;
   const existingChangeBtn = document.getElementById("securityChangePasswordBtn");
   const existingLogoutBtn = document.getElementById("securityLogoutBtn");
-  if (existingChangeBtn) existingChangeBtn.onclick = securityChangePassword;
-  if (existingLogoutBtn) existingLogoutBtn.onclick = securityLockApp;
-  if (existingChangeBtn && existingLogoutBtn) return;
+  if (existingChangeBtn && existingLogoutBtn) {
+    wireSecurityHeaderButtons();
+    return;
+  }
   const header = document.querySelector(".app-header .sep");
   if (!header) return;
-  const changeBtn = document.createElement("button");
-  changeBtn.id = "securityChangePasswordBtn";
-  changeBtn.type = "button";
-  changeBtn.textContent = "🔑 変更";
-  changeBtn.onclick = securityChangePassword;
-  changeBtn.style.cssText = "border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:18px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px";
-  const btn = document.createElement("button");
-  btn.id = "securityLogoutBtn";
-  btn.type = "button";
-  btn.textContent = "🔒 ロック";
-  btn.onclick = securityLockApp;
-  btn.style.cssText = "border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:18px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px";
-  header.insertAdjacentElement("afterend", btn);
-  header.insertAdjacentElement("afterend", changeBtn);
+  if (!existingLogoutBtn) {
+    const btn = document.createElement("button");
+    btn.id = "securityLogoutBtn";
+    btn.type = "button";
+    btn.textContent = "🔒 ロック";
+    btn.style.cssText = "border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:18px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-right:8px";
+    header.insertAdjacentElement("afterend", btn);
+  }
+  if (!existingChangeBtn) {
+    const changeBtn = document.createElement("button");
+    changeBtn.id = "securityChangePasswordBtn";
+    changeBtn.type = "button";
+    changeBtn.textContent = "🔑 変更";
+    changeBtn.style.cssText = "border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;border-radius:18px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;margin-right:6px";
+    header.insertAdjacentElement("afterend", changeBtn);
+  }
+  wireSecurityHeaderButtons();
+}
+
+// v40.39：HTMLに最初からある右上ボタンにも、後から作られるボタンにも必ず処理を接続する。
+function wireSecurityHeaderButtons() {
+  const changeBtn = document.getElementById("securityChangePasswordBtn");
+  if (changeBtn && changeBtn.dataset.securityWired !== "1") {
+    changeBtn.dataset.securityWired = "1";
+    changeBtn.onclick = null;
+    changeBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      securityChangePassword();
+    });
+  }
+  const logoutBtn = document.getElementById("securityLogoutBtn");
+  if (logoutBtn && logoutBtn.dataset.securityWired !== "1") {
+    logoutBtn.dataset.securityWired = "1";
+    logoutBtn.onclick = null;
+    logoutBtn.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      securityLockApp();
+    });
+  }
 }
 function showSecurityLoginOverlay() {
   if (!APP_SECURITY_ENABLED) return;
@@ -2162,6 +2190,7 @@ function showSecurityLoginOverlay() {
   if (securityIsUnlocked()) {
     document.body.classList.remove("app-locked");
     addSecurityLogoutButton();
+    wireSecurityHeaderButtons();
     return;
   }
   document.body.classList.add("app-locked");
@@ -2200,7 +2229,10 @@ function showSecurityLoginOverlay() {
     }));
   }, 80);
 }
-document.addEventListener("DOMContentLoaded", showSecurityLoginOverlay);
+document.addEventListener("DOMContentLoaded", function(){
+  wireSecurityHeaderButtons();
+  showSecurityLoginOverlay();
+});
 
 function getLocalStorageSafe(key, fallback = "") {
   try { return localStorage.getItem(key) || fallback; } catch(e) { return fallback; }
@@ -2222,7 +2254,7 @@ function checkLocalStorageWritable() {
     const storedVer = localStorage.getItem(STORED_VERSION_KEY);
     if (storedVer !== APP_VERSION) {
       safeSaveLocalStorage(STORED_VERSION_KEY, APP_VERSION);
-      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（右上ボタン接続修正版・顧客データは保持）");
+      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（右上ボタン再接続修正版・顧客データは保持）");
     }
   } catch(e) {
     console.warn("localStorageが利用できない環境です。通常モードで開いてください。", e);
