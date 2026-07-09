@@ -1860,7 +1860,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.39";
+const APP_VERSION = "40.40";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -5899,21 +5899,66 @@ function downloadCleanCopy() {
 }
 
 
-function makeSecurityBackupEnvelope(payload) {
-  if (!APP_SECURITY_ENABLED) return payload;
+// ── バックアップ専用パスワード方式（v40.40） ──
+// 目的：ログインパスワードを忘れて端末データを初期化しても、
+//       バックアップ用パスワードが分かれば復元できるようにする。
+// 注意：高齢募集・死亡保障・意向確認書など他機能には関与しません。
+function promptBackupPasswordForExport() {
+  const p1 = prompt("バックアップ用パスワードを入力してください（8文字以上推奨）。\n\n※ログイン用パスワードとは別管理です。\n※復元時にも同じパスワードが必要です。");
+  if (p1 === null) return null;
+  if (String(p1).length < 8) {
+    if (!confirm("8文字未満のパスワードは推奨されません。\n顧客情報を含むバックアップのため、できれば英字＋数字の8文字以上にしてください。\n\nこのまま続行しますか？")) return null;
+  }
+  const p2 = prompt("確認のため、バックアップ用パスワードをもう一度入力してください。");
+  if (p2 === null) return null;
+  if (p1 !== p2) {
+    alert("バックアップ用パスワードが一致しません。バックアップを中止しました。");
+    return null;
+  }
+  return p1;
+}
+function promptBackupPasswordForImport(fileName) {
+  return prompt("バックアップファイルを復元します。\nバックアップ作成時に設定した『バックアップ用パスワード』を入力してください。\n\nファイル：" + (fileName || "バックアップファイル"));
+}
+function makeSecurityBackupEnvelope(payload, backupPassword) {
+  // セキュリティOFF時も、バックアップファイルはパスワード保護します。
   const json = JSON.stringify(payload);
+  const password = String(backupPassword || "");
+  if (!password) return payload;
+  const salt = _secRandomSalt();
+  const seed = _secDeriveSeed(password, salt);
   return {
     _encryptedBackup: true,
+    _backupEncVersion: 2,
     _app: "比較推奨ナビ",
     _version: APP_VERSION,
     _createdAt: new Date().toISOString(),
-    data: _secEncryptText(json)
+    _passwordHint: "バックアップ作成時に設定したバックアップ用パスワードで復元してください",
+    salt: salt,
+    verifier: _secVerifier(seed, salt),
+    data: _secEncryptWithSeed(json, seed)
   };
 }
-function readSecurityBackupEnvelope(obj) {
+function readSecurityBackupEnvelope(obj, fileName) {
   if (obj && obj._encryptedBackup && obj.data) {
+    // v40.40以降：バックアップ専用パスワードで復元
+    if (obj._backupEncVersion === 2 && obj.salt && obj.verifier) {
+      const pass = promptBackupPasswordForImport(fileName);
+      if (pass === null) throw new Error("復元をキャンセルしました。");
+      const seed = _secDeriveSeed(pass, obj.salt);
+      if (_secVerifier(seed, obj.salt) !== obj.verifier) {
+        throw new Error("バックアップ用パスワードが違います。");
+      }
+      const plain = _secDecryptWithSeed(obj.data, seed, APP_ENC_PREFIX);
+      if (!plain) throw new Error("バックアップを復号できません。");
+      return JSON.parse(plain);
+    }
+
+    // v40.39以前：ログイン中の端末鍵で作成された旧形式。
+    // 同じ端末・同じログインパスワードのままなら読めますが、
+    // パスワード再設定後は復元できないことがあります。
     const plain = _secDecryptText(obj.data);
-    if (!plain) throw new Error("暗号化バックアップを復号できません。アプリ内のパスワード設定を確認してください。");
+    if (!plain) throw new Error("旧形式の暗号化バックアップを復号できません。v40.40以降で作成したバックアップをご利用ください。");
     return JSON.parse(plain);
   }
   return obj;
@@ -5926,19 +5971,23 @@ function exportData() {
   const name = c ? (customerDisplayName(c) || c.name || "未登録").replace(/\s/g, "_") : "未登録";
   const date = new Date().toISOString().slice(0, 10);
   const filename = `比較推奨ナビ_${name}_${date}.json`;
-  const exportPayload = makeSecurityBackupEnvelope(state);
-  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+  const backupPassword = promptBackupPasswordForExport();
+  if (!backupPassword) { setStatus("1件エクスポートをキャンセルしました。", "warn"); return; }
+  const exportPayload = makeSecurityBackupEnvelope(state, backupPassword);
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
-  setStatus(`「${filename}」をダウンロードしました。`);
+  setStatus(`「${filename}」をダウンロードしました。復元時にはバックアップ用パスワードが必要です。`);
 }
 
 // ── 全顧客バックアップ（全顧客＋全面談履歴を1ファイルに書き出す） ──
 function exportAllData() {
   const customers = getAllCustomers();
   if (!customers.length) { setStatus("バックアップする顧客データがありません。", "warn"); return; }
+  const backupPassword = promptBackupPasswordForExport();
+  if (!backupPassword) { setStatus("全顧客バックアップをキャンセルしました。", "warn"); return; }
   const date = new Date().toISOString().slice(0, 10);
   const agentName = (localStorage.getItem("ins_nav_agent_name") || "").replace(/\s/g, "_") || "未設定";
   // 全顧客の面談履歴を収集
@@ -5955,13 +6004,13 @@ function exportAllData() {
     histories: allHistories
   };
   const filename = `比較推奨ナビ_全顧客バックアップ_${agentName}_${date}.json`;
-  const exportPayload = makeSecurityBackupEnvelope(backup);
-  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+  const exportPayload = makeSecurityBackupEnvelope(backup, backupPassword);
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
-  setStatus(`✅ 全顧客バックアップ（${customers.length}名）を「${filename}」に保存しました。`);
+  setStatus(`✅ 全顧客バックアップ（${customers.length}名）を「${filename}」に保存しました。復元時にはバックアップ用パスワードが必要です。`);
 }
 
 // ── 全顧客リストア（バックアップファイルから全件復元） ──
@@ -5972,7 +6021,7 @@ function importAllData(input) {
   reader.onload = e => {
     try {
       let backup = JSON.parse(e.target.result);
-      backup = readSecurityBackupEnvelope(backup);
+      backup = readSecurityBackupEnvelope(backup, file.name);
       // 全顧客バックアップ形式かチェック
       if (!backup._backupVersion || !backup.customers || !backup.histories) {
         // 旧形式（単一顧客）は既存のimportDataへ
@@ -6011,7 +6060,7 @@ function importAllData(input) {
       setStatus(`✅ ${backup.customers.length}名の顧客データを復元しました。`);
     } catch(err) {
       console.error("importAllData:", err);
-      setStatus("ファイルの読み込みに失敗しました。バックアップファイルを確認してください。", "err");
+      setStatus("ファイルの読み込みに失敗しました。バックアップ用パスワードまたはバックアップファイルを確認してください。", "err");
     }
     input.value = "";
   };
@@ -6025,7 +6074,7 @@ function importData(input) {
   reader.onload = e => {
     try {
       let s = JSON.parse(e.target.result);
-      s = readSecurityBackupEnvelope(s);
+      s = readSecurityBackupEnvelope(s, file.name);
       s = patchLegacyState(s);
       if (!s.customer && !s.answers) throw new Error("形式が違います");
 
