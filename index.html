@@ -1860,7 +1860,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.40";
+const APP_VERSION = "40.41";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -5904,12 +5904,15 @@ function downloadCleanCopy() {
 //       バックアップ用パスワードが分かれば復元できるようにする。
 // 注意：高齢募集・死亡保障・意向確認書など他機能には関与しません。
 function promptBackupPasswordForExport() {
-  const p1 = prompt("バックアップ用パスワードを入力してください（8文字以上推奨）。\n\n※ログイン用パスワードとは別管理です。\n※復元時にも同じパスワードが必要です。");
+  // v40.41：バックアップ作成時に、必ずバックアップ専用パスワードを確認する。
+  // ここでキャンセルした場合は、バックアップファイルを作成しない。
+  if (!confirm("バックアップファイルを作成します。\n\nこのバックアップは、ログイン用パスワードとは別の『バックアップ用パスワード』で保護します。\n復元時にも同じバックアップ用パスワードが必要です。\n\n続けますか？")) return null;
+  const p1 = window.prompt("バックアップ用パスワードを入力してください（8文字以上推奨）。\n\n例：AssistBackup2026 など\n※ログイン用パスワードとは別管理です。\n※復元時にも同じパスワードが必要です。");
   if (p1 === null) return null;
   if (String(p1).length < 8) {
     if (!confirm("8文字未満のパスワードは推奨されません。\n顧客情報を含むバックアップのため、できれば英字＋数字の8文字以上にしてください。\n\nこのまま続行しますか？")) return null;
   }
-  const p2 = prompt("確認のため、バックアップ用パスワードをもう一度入力してください。");
+  const p2 = window.prompt("確認のため、バックアップ用パスワードをもう一度入力してください。");
   if (p2 === null) return null;
   if (p1 !== p2) {
     alert("バックアップ用パスワードが一致しません。バックアップを中止しました。");
@@ -5979,7 +5982,7 @@ function exportData() {
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
-  setStatus(`「${filename}」をダウンロードしました。復元時にはバックアップ用パスワードが必要です。`);
+  setStatus(`「${filename}」をダウンロードしました。バックアップ用パスワードで保護済みです。復元時にも同じパスワードが必要です。`);
 }
 
 // ── 全顧客バックアップ（全顧客＋全面談履歴を1ファイルに書き出す） ──
@@ -6010,7 +6013,7 @@ function exportAllData() {
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   a.click();
-  setStatus(`✅ 全顧客バックアップ（${customers.length}名）を「${filename}」に保存しました。復元時にはバックアップ用パスワードが必要です。`);
+  setStatus(`✅ 全顧客バックアップ（${customers.length}名）を「${filename}」に保存しました。バックアップ用パスワードで保護済みです。復元時にも同じパスワードが必要です。`);
 }
 
 // ── 全顧客リストア（バックアップファイルから全件復元） ──
