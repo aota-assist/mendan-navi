@@ -3,7 +3,7 @@
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較推奨ナビ v40.44｜面談日固定修正版</title>
+<title>比較推奨ナビ v40.45｜既存履歴日付修正版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -1865,7 +1865,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.44";
+const APP_VERSION = "40.45";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -3737,11 +3737,7 @@ function viewSavedInterview(customerId) {
     setStatus("面談履歴がありません。", "warn");
     return;
   }
-  // 複数件あればモーダルで選択、1件ならそのまま表示
-  if (hist.length === 1) {
-    viewInterviewRecord(customerId, hist[0]._historyId || hist[0].savedAt);
-    return;
-  }
+  // 1件だけの場合も履歴画面を開き、保存済み面談日の確認・修正を可能にする。
   openHistoryModal(c, hist);
 }
 
@@ -3784,6 +3780,13 @@ function openHistoryModal(c, hist) {
       : "";
     return `<div class="history-item" onclick="viewInterviewRecord('${esc(c.id)}','${esc(hid)}');closeHistoryModal()">
       <div class="hi-date">📅 ${date}　<span style="font-size:11px;font-weight:400;color:var(--text-mid)">${esc(status)}</span></div>
+      <div style="display:flex;align-items:center;gap:8px;margin:7px 0 3px" onclick="event.stopPropagation()">
+        <label style="font-size:11px;color:var(--text-mid);font-weight:700;white-space:nowrap">面談日を修正</label>
+        <input type="date" value="${esc(getSessionInterviewDate(s))}" aria-label="${esc(status)}の面談日"
+          onclick="event.stopPropagation()"
+          onchange="event.stopPropagation();updateHistoryInterviewDate('${esc(c.id)}','${esc(hid)}',this.value)"
+          style="width:auto;min-width:150px;padding:5px 8px;font-size:12px">
+      </div>
       <div class="hi-status">${statusLabel}</div>
       ${allBadges ? `<div class="hi-contracts" style="gap:4px;flex-wrap:wrap;display:flex;margin-top:4px">${allBadges}</div>` : ""}
       ${elderlyWarning}
@@ -3794,6 +3797,65 @@ function openHistoryModal(c, hist) {
 
 function closeHistoryModal() {
   el("historyModal").classList.add("hidden");
+}
+
+function updateHistoryInterviewDate(customerId, historyId, newDate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(newDate || ""))) {
+    setStatus("正しい面談日を選択してください。", "warn");
+    return;
+  }
+  const customers = getAllCustomers();
+  const customer = customers.find(x => x.id === customerId);
+  const hist = getInterviewHistory(customerId);
+  const idx = hist.findIndex(h => (h._historyId || h.savedAt) === historyId);
+  if (!customer || idx < 0) {
+    setStatus("面談履歴が見つかりません。", "warn");
+    return;
+  }
+
+  const session = hist[idx];
+  const oldDate = getSessionInterviewDate(session);
+  const oldLabel = formatJapaneseYmd(oldDate, "");
+  const newLabel = formatJapaneseYmd(newDate, "");
+  session.interviewDate = newDate;
+  if (!session.documentCreatedDate || session.documentCreatedDate === oldDate) {
+    session.documentCreatedDate = newDate;
+  }
+  // 編集保存済み確認書の面談履歴にも同じ日付が残るため、全履歴の保存HTMLを更新する。
+  hist.forEach(h => {
+    if (h.printHtmlEdited && oldLabel && newLabel) {
+      h.printHtmlEdited = h.printHtmlEdited.split(oldLabel).join(newLabel);
+    }
+    (h._carriedContracts || []).forEach(cc => {
+      if (cc.previousDate && localYmd(cc.previousDate) === oldDate) cc.previousDate = newDate;
+    });
+  });
+
+  safeSaveLocalStorage(historyKey(customerId), JSON.stringify(pruneHistoryForStorage(hist)));
+  if (hist.length) safeSaveLocalStorage(interviewKey(customerId), JSON.stringify(hist[0]));
+
+  try {
+    const globalRaw = localStorage.getItem(INTERVIEW_KEY);
+    const globalState = globalRaw ? JSON.parse(globalRaw) : null;
+    if (globalState) {
+      const globalId = globalState._historyId || globalState.savedAt;
+      const updatedGlobal = hist.find(h => (h._historyId || h.savedAt) === globalId);
+      if (updatedGlobal) safeSaveLocalStorage(INTERVIEW_KEY, JSON.stringify(updatedGlobal));
+    }
+  } catch(e) {}
+
+  const activeSession = hist.find(h => (h._historyId || h.savedAt) === app._historyId);
+  if (activeSession) {
+    app._printHtmlEdited = activeSession.printHtmlEdited || "";
+    if (app._historyId === historyId) {
+      app._interviewDate = newDate;
+      app._documentCreatedDate = session.documentCreatedDate;
+      if (el("interviewDate")) el("interviewDate").value = newDate;
+    }
+    if (app._printHtmlEdited && el("printArea")) el("printArea").innerHTML = app._printHtmlEdited;
+  }
+  openHistoryModal(customer, hist);
+  setStatus(`📅 面談日を${newLabel}に修正しました。`);
 }
 
 function viewInterviewRecord(customerId, historyId) {
