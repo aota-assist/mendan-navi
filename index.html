@@ -3332,9 +3332,14 @@ function renderDashboard() {
   list.forEach(c => {
     try {
       const hist = getInterviewHistory(c.id);
-      const contractedStatuses = ["成約","申込意向あり・次回手続き"];
+      // ダッシュボードの「成約件数」は、申込意向ではなく成約確定分だけを集計する。
+      const contractedStatuses = ["成約"];
       const inProgressStatuses = ["次回再提案","設計書持ち帰り","家族に相談"];
       const contractedProducts = new Set(); // 商品単位で重複排除
+      // v40.43: 同一保障（need）が「申込意向あり・次回手続き」→（次回面談で）「成約」のように
+      // 案件が進行しただけの場合に二重集計されないよう、保障単位でも重複排除する。
+      // hist は新しい順のため、同じneedは最初に出てきた（＝最新の）面談の記録を採用する。
+      const seenNeeds = new Set();
       let hasInProgress = false;
       hist.forEach(s => {
         const recs = s.recommendations || {};
@@ -3345,7 +3350,10 @@ function renderDashboard() {
         Object.entries(recs).forEach(([need, r]) => {
           // 高齢×初回面談の成約は高齢募集ルール上カウントしない（共通関数で判定）
           if (contractedStatuses.includes(r.status) && !isInvalidElderlyFirstContract(s, c, r.status)) {
-            contractedProducts.add((r.contract || r.product || need).split("（")[0].trim());
+            if (!seenNeeds.has(need)) {
+              seenNeeds.add(need);
+              contractedProducts.add((r.contract || r.product || need).split("（")[0].trim());
+            }
           }
           // 最新履歴のみで次回提案を判定
           if (s === hist[0] && (inProgressStatuses.includes(r.status) || !!r.nextDate)) hasInProgress = true;
@@ -3418,11 +3426,11 @@ function renderCustomerList() {
         return hist.some(s => {
           // 高齢×初回の成約は成約顧客フィルタから除外（共通関数で判定）
           if (Object.values(s.recommendations||{}).every(r =>
-            isInvalidElderlyFirstContract(s, c, r.status) || !["成約","申込意向あり・次回手続き"].includes(r.status)
+            isInvalidElderlyFirstContract(s, c, r.status) || r.status !== "成約"
           ) && !(s._carriedContracts||[]).length) return false;
           const carriedNeeds = new Set((s._carriedContracts || []).map(cc => cc.need));
           return Object.entries(s.recommendations||{}).some(([need, r]) =>
-            ["成約","申込意向あり・次回手続き"].includes(r.status) && !carriedNeeds.has(need)
+            r.status === "成約" && !carriedNeeds.has(need)
           );
         });
       } catch(e) {}
@@ -6985,7 +6993,7 @@ function generateDocument(overrideSigns, overrideChecks) {
         const pendingItems    = recs.filter(([,r]) => ["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status));
         const declinedItems   = recs.filter(([,r]) => r.status === "今回は見送り");
         const badges = [
-          ...contractedItems.map(([need]) => `<span style="font-size:10px;font-weight:700;background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;margin:2px">✅ ${esc((needLabels||{})[need]||need)}：成約</span>`),
+          ...contractedItems.map(([need,r]) => `<span style="font-size:10px;font-weight:700;background:#d1fae5;color:#065f46;padding:2px 7px;border-radius:10px;margin:2px">✅ ${esc((needLabels||{})[need]||need)}：${esc(r.status)}</span>`),
           ...elderlyItems.map(([need]) => `<span style="font-size:10px;font-weight:700;background:#fff3cd;color:#7a5800;padding:2px 7px;border-radius:10px;margin:2px">⚠ ${esc((needLabels||{})[need]||need)}：高齢×初回要確認</span>`),
           ...pendingItems.map(([need,r]) => `<span style="font-size:10px;font-weight:700;background:#dbeafe;color:#1e40af;padding:2px 7px;border-radius:10px;margin:2px">📅 ${esc((needLabels||{})[need]||need)}：${esc(r.status)}</span>`),
           ...declinedItems.map(([need]) => `<span style="font-size:10px;font-weight:700;background:#f3f4f6;color:#6b7280;padding:2px 7px;border-radius:10px;margin:2px">⏸ ${esc((needLabels||{})[need]||need)}：見送り</span>`)
@@ -9149,10 +9157,17 @@ function printDocumentGuarded() {
     agent: signatureData("agentSign") || (app._savedSigns?.agent || "")
   };
   app._savedSigns = { ...(app._savedSigns || {}), ...signs };
-  const wasForce = app._forceRegenerateDocument;
-  app._forceRegenerateDocument = true;
-  generateDocument(signs, app._savedChecks || {});
-  app._forceRegenerateDocument = wasForce;
+  // v40.42: 後日修正モードで保存した手修正（日付の手動編集など）がある場合は、
+  // 強制再生成すると上書きされて消えてしまうため、保存済みの修正内容をそのまま印刷する。
+  if (!app._printHtmlEdited) {
+    const wasForce = app._forceRegenerateDocument;
+    app._forceRegenerateDocument = true;
+    generateDocument(signs, app._savedChecks || {});
+    app._forceRegenerateDocument = wasForce;
+  } else if (app._printEditMode) {
+    // 修正モードのまま印刷された場合は、編集用の枠線などの見た目だけ解除する（本文は保持）
+    setPrintEditMode(false);
+  }
   waitForPrintImages(el("printArea")).then(() => setTimeout(() => window.print(), 180));
 }
 const CUSTOM_PRODUCTS_KEY   = "mendan_custom_products_v1";
