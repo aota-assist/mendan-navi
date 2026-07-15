@@ -3,7 +3,7 @@
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較推奨ナビ v40.45｜既存履歴日付修正版</title>
+<title>比較推奨ナビ v40.48｜面談開始ガード完全版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -1865,7 +1865,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.45";
+const APP_VERSION = "40.48";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -2404,6 +2404,7 @@ function deepClearAppSession(options = {}) {
   app._interviewDate = "";
   app._savedAt = "";
   app._documentCreatedDate = "";
+  app._sessionStarted = false;
   if (!options.keepCustomer) app.customer = null;
   clearSignatureCanvases();
   resetChecklistDom();
@@ -2465,7 +2466,8 @@ let app = {
   needs: [],
   queue: [],
   index: 0,
-  recommendations: {}
+  recommendations: {},
+  _sessionStarted: false
 };
 
 const needLabels = {
@@ -2671,7 +2673,9 @@ function formatJapaneseYmd(ymd, fallback = "日付不明") {
   return m ? `${Number(m[1])}年${Number(m[2])}月${Number(m[3])}日` : fallback;
 }
 function selectedInterviewDate() {
-  return val("interviewDate") || app._interviewDate || localYmd();
+  // 新規・引き継ぎ面談を開始する前に、利用者が選んだ日付だけを使う。
+  // 保存済み面談の app._interviewDate を参照すると前回の日付が混入するため使わない。
+  return val("interviewDate") || "";
 }
 // v40.30: 署名画面・意向確認書参照で確認チェックが外れて見える事故を防ぐ共通判定
 function getSavedCheckValue(id, checksMap) {
@@ -3613,6 +3617,7 @@ function selectCustomer(id) {
   // 顧客切り替え時は前顧客の署名・ニーズ・意向確認書を完全クリアしてから復元する
   deepClearAppSession({ keepCustomer: false });
   app.customer = patchLegacyCustomer(c);
+  app._sessionStarted = false;
   sanitizeModeData(getCustomerKind(app.customer));
   // フォームに反映
   restoreCustomerKindUI(c.customerKind);
@@ -3627,7 +3632,8 @@ function selectCustomer(id) {
   el("source").value = c.source || "紹介";
   el("meetingStatus").value = c.meetingStatus || "初回面談";
   el("nextMeeting").value = getEffectiveNextMeeting(c) || "";
-  if (el("interviewDate")) el("interviewDate").value = localYmd();
+  // 開始前の日付欄は保存済み面談日と切り離す。顧客切替後は実際の面談日を選び直す。
+  if (el("interviewDate")) el("interviewDate").value = "";
   restoreCustomerTypeUI(c.customerType);
   if (el("nextMeetingQuick")) el("nextMeetingQuick").value = getEffectiveNextMeeting(c) || "";
   if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = getEffectiveNextMeetingNote(c) || "";
@@ -3850,7 +3856,6 @@ function updateHistoryInterviewDate(customerId, historyId, newDate) {
     if (app._historyId === historyId) {
       app._interviewDate = newDate;
       app._documentCreatedDate = session.documentCreatedDate;
-      if (el("interviewDate")) el("interviewDate").value = newDate;
     }
     if (app._printHtmlEdited && el("printArea")) el("printArea").innerHTML = app._printHtmlEdited;
   }
@@ -3870,11 +3875,12 @@ function viewInterviewRecord(customerId, historyId) {
   // 当時のセッション情報（面談ステータス等）を優先し、顧客マスタで補完
   // → 過去の初回面談を開いた時に現在のステータスで印字されるズレを防ぐ
   app.customer = { ...c, ...(s.customer || {}), id: c.id };
+  // 履歴の閲覧は新規面談の開始ではないため、質問フローへの直接遷移を許可しない。
+  app._sessionStarted = false;
   app._historyId = s._historyId || s.savedAt || "";
   app._interviewDate = getSessionInterviewDate(s);
   app._savedAt = s.savedAt || "";
   app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
-  if (el("interviewDate")) el("interviewDate").value = app._interviewDate || localYmd();
   app.answers = s.answers || {};
   app.needs = s.needs || [];
   app.recommendations = s.recommendations || {};
@@ -4245,6 +4251,7 @@ function continueInterview() {
 
   // v40.10: 引き継ぎ後も質問フローへ戻れるよう、現在の顧客区分に合う完全な質問キューを保持する
   app._historyId = "h_" + Date.now();
+  app._sessionStarted = true;
   app._interviewDate = _selectedInterviewDate;
   app._savedAt = new Date().toISOString();
   app._documentCreatedDate = _selectedInterviewDate;
@@ -4296,6 +4303,7 @@ function startInterview() {
   app.queue = [questionTemplates.start];
   app.index = 0;
   app._historyId = "h_" + Date.now();
+  app._sessionStarted = true;
   app._interviewDate = _selectedInterviewDate;
   app._savedAt = new Date().toISOString();
   app._documentCreatedDate = _selectedInterviewDate;
@@ -4512,6 +4520,14 @@ function openWizardPage(preferredIndex) {
   if (!app.customer) {
     showPage("customerPage");
     setStatus("顧客を選択してから質問フローを開始してください。", "warn");
+    return;
+  }
+  // v40.47: 「面談開始」ボタンを経由せずサイドバーから直接入ると面談日未選択のまま
+  // 進んでしまい、後の保存時に当日日付が自動採用されてしまう抜け道があったため、
+  // 面談日が未確定の場合は顧客登録画面に戻し、必ず面談日を選んでもらう。
+  if (!app._sessionStarted || !app._interviewDate) {
+    showPage("customerPage");
+    setStatus("先に「面談日」を選択し、「面談開始」ボタンを押してから質問フローに進んでください。", "warn");
     return;
   }
   normalizeWizardQueueForCurrentState(preferredIndex);
@@ -5885,10 +5901,12 @@ function collectState() {
   // savedAt は面談レコードを最初に作成した時刻として固定し、確認・印刷では更新しない。
   // 後日の操作時刻は updatedAt に分離する。
   if (!app._savedAt) app._savedAt = nowIso;
-  if (!app._interviewDate) app._interviewDate = val("interviewDate") || localYmd(app._savedAt);
+  // 開始済み面談の保存・確認・PDF出力では画面上のカレンダー値を参照しない。
+  if (!app._interviewDate) app._interviewDate = localYmd(app._savedAt);
   if (!app._documentCreatedDate) app._documentCreatedDate = app._interviewDate;
   return {
     customer: app.customer, answers: app.answers, needs: app.needs,
+    sessionStarted: !!app._sessionStarted,
     interviewDate: app._interviewDate,
     documentCreatedDate: app._documentCreatedDate,
     elderlyCompanion: getElderlyCompanionInfo(),
@@ -6262,10 +6280,10 @@ function loadInterview() {
   app.elderlyCompanion = s.elderlyCompanion || {};
   restoreElderlyCompanionUI(app.elderlyCompanion);
   app._historyId = s._historyId || s.savedAt || "";
+  app._sessionStarted = !!s.sessionStarted;
   app._interviewDate = getSessionInterviewDate(s);
   app._savedAt = s.savedAt || "";
   app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
-  if (el("interviewDate")) el("interviewDate").value = app._interviewDate || localYmd();
   app._savedSigns = { customer: s.signs?.customer || "", agent: s.signs?.agent || "" };
   app._savedChecks = { ...(s.checks || {}) };
   app._printHtmlEdited = s.printHtmlEdited || "";
@@ -7417,6 +7435,9 @@ window.addEventListener("load", () => {
 
 function resumeInterview() {
   loadInterview();
+  // 「面談を再開」を明示的に選んだ場合だけ、保存済み面談の続きとして質問フローを開く。
+  // 顧客を選択しただけの場合とは区別し、過去履歴の日付が新しい面談に混ざらないようにする。
+  app._sessionStarted = !!app.customer && !!app._interviewDate;
   openWizardPage();
 }
 
