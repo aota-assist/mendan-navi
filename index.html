@@ -3,7 +3,7 @@
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較推奨ナビ v40.37｜パスワード救済安全版</title>
+<title>比較推奨ナビ v40.44｜面談日固定修正版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -1302,6 +1302,11 @@ body.app-locked .app-body {
           💾 <b>保存済みの面談データがあります</b><br>
           <span id="prevDataSummary" style="color:var(--text-mid);font-size:12px"></span>
         </div>
+        <div class="field" style="margin-top:14px">
+          <label>📅 面談日 <span style="color:#e07b4a">*</span> <span style="font-size:11px;color:var(--text-light);font-weight:400">（実際に面談した日を選択）</span></label>
+          <input id="interviewDate" type="date" aria-label="面談日">
+          <div style="font-size:11px;color:var(--text-light);margin-top:4px">履歴・意向確認書・PDFにはこの日付を固定して表示します。</div>
+        </div>
         <div class="btns mt16" style="flex-direction:column;gap:10px">
           <button id="btnContinue" class="btn btn-primary hidden" onclick="continueInterview()" style="width:100%;justify-content:center">
             🔄 前回の内容を引き継いで面談開始
@@ -1860,7 +1865,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.41";
+const APP_VERSION = "40.44";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -2396,6 +2401,9 @@ function deepClearAppSession(options = {}) {
   app._printHtmlEdited = "";
   app._forceRegenerateDocument = false;
   app._closingType = "";
+  app._interviewDate = "";
+  app._savedAt = "";
+  app._documentCreatedDate = "";
   if (!options.keepCustomer) app.customer = null;
   clearSignatureCanvases();
   resetChecklistDom();
@@ -2643,6 +2651,28 @@ Object.values(questionTemplates).forEach(q => { questionById[q.id] = q; });
 const el = id => document.getElementById(id);
 const val = id => el(id) ? el(id).value : "";
 const checked = id => el(id) && el(id).checked;
+function localYmd(date = new Date()) {
+  const d = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function getSessionInterviewDate(session) {
+  if (session?.interviewDate && /^\d{4}-\d{2}-\d{2}$/.test(session.interviewDate)) return session.interviewDate;
+  if (session?.savedAt) return localYmd(session.savedAt);
+  return "";
+}
+function formatJapaneseYmd(ymd, fallback = "日付不明") {
+  let normalized = String(ymd || "");
+  if (normalized && !/^\d{4}-\d{2}-\d{2}$/.test(normalized)) normalized = localYmd(normalized);
+  const m = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${Number(m[1])}年${Number(m[2])}月${Number(m[3])}日` : fallback;
+}
+function selectedInterviewDate() {
+  return val("interviewDate") || app._interviewDate || localYmd();
+}
 // v40.30: 署名画面・意向確認書参照で確認チェックが外れて見える事故を防ぐ共通判定
 function getSavedCheckValue(id, checksMap) {
   const map = checksMap || app._savedChecks || {};
@@ -3597,6 +3627,7 @@ function selectCustomer(id) {
   el("source").value = c.source || "紹介";
   el("meetingStatus").value = c.meetingStatus || "初回面談";
   el("nextMeeting").value = getEffectiveNextMeeting(c) || "";
+  if (el("interviewDate")) el("interviewDate").value = localYmd();
   restoreCustomerTypeUI(c.customerType);
   if (el("nextMeetingQuick")) el("nextMeetingQuick").value = getEffectiveNextMeeting(c) || "";
   if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = getEffectiveNextMeetingNote(c) || "";
@@ -3612,6 +3643,9 @@ function selectCustomer(id) {
       let s = JSON.parse(ivRaw);
       s = patchLegacyState(s);
       app._historyId = s._historyId || s.savedAt || "";
+      app._interviewDate = getSessionInterviewDate(s);
+      app._savedAt = s.savedAt || "";
+      app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
       app.answers = s.answers || {};
       sanitizeModeData(getCustomerKind(app.customer));
       app.needs = s.needs || [];
@@ -3622,6 +3656,8 @@ function selectCustomer(id) {
       if (el("intentMemo")) el("intentMemo").value = s.intentMemo || "";
       if (el("intentPolished")) el("intentPolished").value = s.intentPolished || "";
       app._closingType = s.closingType || "";
+      app._printHtmlEdited = s.printHtmlEdited || "";
+      if (app._printHtmlEdited && el("printArea")) el("printArea").innerHTML = app._printHtmlEdited;
       if (el("managerNeed")) el("managerNeed").value = s.managerNeed || "不要";
       if (el("managerName")) el("managerName").value = s.managerName || "";
 
@@ -3657,6 +3693,9 @@ function selectCustomer(id) {
     app.answers = {}; app.needs = []; app.recommendations = {};
     app.queue = [questionTemplates.start]; app.index = 0;
     app._historyId = "";
+    app._interviewDate = "";
+    app._savedAt = "";
+    app._documentCreatedDate = "";
     app._savedSigns = { customer: "", agent: "" };
     app._savedChecks = {};
     app._printHtmlEdited = "";
@@ -3710,9 +3749,8 @@ function openHistoryModal(c, hist) {
   const contractedStatuses = ["成約","申込意向あり・次回手続き"];
   const body = el("historyModalBody");
   body.innerHTML = hist.map((s, i) => {
-    const date = s.savedAt
-      ? new Date(s.savedAt).toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric",hour:"2-digit",minute:"2-digit"})
-      : "日時不明";
+    // 保存・確認した日時ではなく、面談開始時に確定した面談日を表示する（時刻は表示しない）。
+    const date = formatJapaneseYmd(getSessionInterviewDate(s));
     const status = s.customer?.meetingStatus || "不明";
     const contracted = Object.entries(s.recommendations||{})
       .filter(([,r]) => contractedStatuses.includes(r.status));
@@ -3771,6 +3809,10 @@ function viewInterviewRecord(customerId, historyId) {
   // → 過去の初回面談を開いた時に現在のステータスで印字されるズレを防ぐ
   app.customer = { ...c, ...(s.customer || {}), id: c.id };
   app._historyId = s._historyId || s.savedAt || "";
+  app._interviewDate = getSessionInterviewDate(s);
+  app._savedAt = s.savedAt || "";
+  app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
+  if (el("interviewDate")) el("interviewDate").value = app._interviewDate || localYmd();
   app.answers = s.answers || {};
   app.needs = s.needs || [];
   app.recommendations = s.recommendations || {};
@@ -3849,7 +3891,7 @@ function refreshStartButtons(c) {
   const latest = hist[0] || null;
   let hasPrev = !!(latest && ((latest.answers && Object.keys(latest.answers).length > 0) || (latest.needs && latest.needs.length > 0)));
   if (hasPrev && el("prevDataSummary")) {
-    const savedAt = latest.savedAt ? new Date(latest.savedAt).toLocaleDateString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}) : "不明";
+    const savedAt = formatJapaneseYmd(getSessionInterviewDate(latest), "不明");
     const needCount = (latest.needs||[]).length;
     const statusStr = latest.customer?.meetingStatus || c.meetingStatus || "";
     const histCount = hist.length;
@@ -3994,6 +4036,8 @@ function advanceMeetingStatus(current) {
 // ──引き継ぎ面談──
 function continueInterview() {
   if (!saveCustomer()) return; // フォームの内容（ステータス変更等）を先に保存
+  const _selectedInterviewDate = selectedInterviewDate();
+  if (!_selectedInterviewDate) { alert("面談日を選択してください。"); return; }
   const c = app.customer;
   if (!c) { alert("顧客を選択してください。"); return; }
   // 最新の履歴から引き継ぎ
@@ -4075,7 +4119,7 @@ function continueInterview() {
           label: needLabels[need] || need,
           product: r.contract || r.product || "",
           status: r.status,
-          previousDate: s.savedAt || ""
+          previousDate: getSessionInterviewDate(cleanedS)
         });
       }
       return;
@@ -4139,6 +4183,10 @@ function continueInterview() {
 
   // v40.10: 引き継ぎ後も質問フローへ戻れるよう、現在の顧客区分に合う完全な質問キューを保持する
   app._historyId = "h_" + Date.now();
+  app._interviewDate = _selectedInterviewDate;
+  app._savedAt = new Date().toISOString();
+  app._documentCreatedDate = _selectedInterviewDate;
+  app._printHtmlEdited = "";
   app._savedSigns = { customer: "", agent: "" };
   app._savedChecks = {};
   normalizeWizardQueueForCurrentState(
@@ -4157,6 +4205,8 @@ function continueInterview() {
 
 function startInterview() {
   if (!saveCustomer()) return;
+  const _selectedInterviewDate = selectedInterviewDate();
+  if (!_selectedInterviewDate) { alert("面談日を選択してください。"); return; }
   const _currentCustomerForSession = app.customer;
 
   // ── 高齢者×初回面談で成約予定の場合に警告 ──
@@ -4184,6 +4234,9 @@ function startInterview() {
   app.queue = [questionTemplates.start];
   app.index = 0;
   app._historyId = "h_" + Date.now();
+  app._interviewDate = _selectedInterviewDate;
+  app._savedAt = new Date().toISOString();
+  app._documentCreatedDate = _selectedInterviewDate;
 
   // メモ・整文テキストエリアをクリア
   ["intentMemo","intentPolished","importantMemo","importantPolished"].forEach(id => {
@@ -5766,8 +5819,16 @@ function renderRecommendations() {
 // ──────────────── SAVE/LOAD ────────────────
 function collectState() {
   if (app.customer) sanitizeModeData(getCustomerKind(app.customer));
+  const nowIso = new Date().toISOString();
+  // savedAt は面談レコードを最初に作成した時刻として固定し、確認・印刷では更新しない。
+  // 後日の操作時刻は updatedAt に分離する。
+  if (!app._savedAt) app._savedAt = nowIso;
+  if (!app._interviewDate) app._interviewDate = val("interviewDate") || localYmd(app._savedAt);
+  if (!app._documentCreatedDate) app._documentCreatedDate = app._interviewDate;
   return {
     customer: app.customer, answers: app.answers, needs: app.needs,
+    interviewDate: app._interviewDate,
+    documentCreatedDate: app._documentCreatedDate,
     elderlyCompanion: getElderlyCompanionInfo(),
     queueIds: app.queue.map(q => q.id), index: app.index, recommendations: app.recommendations,    _carriedContracts: app._carriedContracts || [],   // ← 引き継ぎ成約を保存
     intentMemo: val("intentMemo"), intentPolished: val("intentPolished"),
@@ -5788,7 +5849,8 @@ function collectState() {
       });
       return result;
     })(),
-    savedAt: new Date().toISOString(),
+    savedAt: app._savedAt,
+    updatedAt: nowIso,
     managerNeed: val("managerNeed"), managerName: val("managerName"),
     signs: (function() {
       // 実際に描画されたcanvasだけを採用。空canvasのDataURLで保存済み署名を上書きしない。
@@ -6138,6 +6200,10 @@ function loadInterview() {
   app.elderlyCompanion = s.elderlyCompanion || {};
   restoreElderlyCompanionUI(app.elderlyCompanion);
   app._historyId = s._historyId || s.savedAt || "";
+  app._interviewDate = getSessionInterviewDate(s);
+  app._savedAt = s.savedAt || "";
+  app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
+  if (el("interviewDate")) el("interviewDate").value = app._interviewDate || localYmd();
   app._savedSigns = { customer: s.signs?.customer || "", agent: s.signs?.agent || "" };
   app._savedChecks = { ...(s.checks || {}) };
   app._printHtmlEdited = s.printHtmlEdited || "";
@@ -6969,7 +7035,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       <h4 style="font-size:12px;color:#065f46;font-weight:700;margin:0 0 5px">✅ 前回成約済み保険：${carriedContracts.length}件（本書面の対象外・既契約として参照）</h4>
       <div style="font-size:12px;color:#374151;line-height:1.6">
         ${carriedContracts.map(cc => {
-          const dateStr = cc.previousDate ? new Date(cc.previousDate).toLocaleDateString("ja-JP",{year:"numeric",month:"numeric",day:"numeric"}) : "前回";
+          const dateStr = cc.previousDate ? formatJapaneseYmd(cc.previousDate, "前回") : "前回";
           return `・${esc(cc.product || cc.label || cc.need || "成約済み保険")} <span style="color:#6b7280">（${esc(dateStr)}）</span>`;
         }).join("<br>")}
       </div>
@@ -6981,9 +7047,7 @@ function generateDocument(overrideSigns, overrideChecks) {
     const hist = getInterviewHistory(app.customer.id);
     if (hist.length > 1) {
       const timelineItems = hist.slice().reverse().map((s, i) => {
-        const dateStr = s.savedAt
-          ? new Date(s.savedAt).toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric"})
-          : "日時不明";
+        const dateStr = formatJapaneseYmd(getSessionInterviewDate(s));
         const sessionStatus = s.customer?.meetingStatus || "不明";
         const recs = Object.entries(s.recommendations||{}).filter(([,r]) => !r._carried);
         const tlElderlyFirst = isElderlyFirstSession(s, app.customer);
@@ -7033,11 +7097,13 @@ function generateDocument(overrideSigns, overrideChecks) {
         : esc(c.meetingStatus||"")}
     </p>`;
 
+  const documentCreatedDate = app._documentCreatedDate || app._interviewDate || localYmd();
+  app._documentCreatedDate = documentCreatedDate;
   el("printArea").innerHTML = `
     <h2>意向確認書</h2>
     <p style="text-align:right;font-size:13px;color:#555">
       ${esc(CONFIG.agencyName||"")}<br>
-      作成日：${new Date().toLocaleDateString("ja-JP",{year:"numeric",month:"long",day:"numeric"})}
+      作成日：${formatJapaneseYmd(documentCreatedDate)}
     </p>
     ${customerInfoHtml}
     ${sessionTimelineSection}
@@ -7234,6 +7300,7 @@ function forceRegenerateDocument() {
 
 // ──────────────── INIT ────────────────
 window.addEventListener("load", () => {
+  if (el("interviewDate") && !el("interviewDate").value) el("interviewDate").value = localYmd();
   if (!checkLocalStorageWritable()) {
     alert("⚠️ このブラウザではデータ保存が利用できません。Safariのプライベートブラウズ／シークレットモードを解除し、通常モードで開いてください。");
     setStatus("⚠️ データ保存が利用できません。通常モードで開いてください。", "err");
@@ -9081,10 +9148,18 @@ function collectCurrentSignsForPrint() {
 function generateDocumentFromSignPage() {
   if (!requireAgentConfirm("意向確認書の生成")) return;
   try {
+    // 後日修正して保存した確認書は、通常の再表示や印刷では再生成しない。
+    // 上書きが必要な場合だけ印刷画面の「再生成」を明示的に使う。
+    if (app._printHtmlEdited && el("printArea")) {
+      el("printArea").innerHTML = app._printHtmlEdited;
+      setPrintEditMode(false);
+      showPage("printPage");
+      setStatus("📝 保存済みの修正済み意向確認書を表示しました。");
+      return;
+    }
     const checks = collectCurrentChecksForPrint();
     const signs = collectCurrentSignsForPrint();
-    // 以前の編集済みHTMLや古い表示に引っ張られず、現在の入力内容から必ず作り直す。
-    app._forceRegenerateDocument = true;
+    app._forceRegenerateDocument = false;
     generateDocument(signs, checks);
     showPage("printPage");
     // 生成直後の状態を履歴にも残す。保存後に画面が戻らないよう、最後にprintPageを再指定する。
