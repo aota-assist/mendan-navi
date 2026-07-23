@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
@@ -1552,23 +1553,27 @@ body.app-locked .app-body {
         <span>② 推奨する商品・比較した商品の説明を受けました</span>
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" id="checkPublicMedical">
+        <span>③ 公的医療保険制度の概要と、民間医療保険で備える範囲について説明を受け、内容を確認しました</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" id="checkImportant">
-        <span>③ 保障内容・保険料・免責事項等の重要事項の説明を受けました</span>
+        <span>④ 保障内容・保険料・免責事項等の重要事項の説明を受けました</span>
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" id="checkCompare">
-        <span>④ 上記の内容を確認・理解した上で、自分の意思で判断しました</span>
+        <span>⑤ 上記の内容を確認・理解した上で、自分の意思で判断しました</span>
       </label>
       <!-- checkResult は互換性のため非表示で保持 -->
       <input type="checkbox" id="checkResult" style="display:none">
       <!-- 高齢者用（70歳以上のみ表示） -->
       <label id="elderlyCheckRow" class="check-item hidden" onclick="toggleCheck(this)">
         <input type="checkbox" id="checkElderly">
-        <span>⑤【高齢対応】複数回面談を実施していることを確認した</span>
+        <span>⑥【高齢対応】複数回面談を実施していることを確認した</span>
       </label>
       <label id="familyAttendanceRow" class="check-item hidden" onclick="toggleCheck(this)">
         <input type="checkbox" id="checkFamilyAttendance">
-        <span>⑤【高齢対応】満69歳以下のご家族等が同席し、説明内容と申込意向を確認した</span>
+        <span>⑥【高齢対応】満69歳以下のご家族等が同席し、説明内容と申込意向を確認した</span>
       </label>
       <!-- 高齢者・比較推奨チェック -->
       <input type="checkbox" id="checkElderlyMulti" style="display:none">
@@ -2967,11 +2972,11 @@ function updateCheckLabels() {
   const famText = familyRow ? familyRow.querySelector("span") : null;
   const info = app.elderlyCompanion || {};
   const famAge = info.age ?? calculateAgeFromBirth(info.birth);
-  if (famText && age >= 70 && isFirst) famText.textContent = `⑤【高齢対応】満69歳以下のご家族等が同席し、説明内容と申込意向を確認した${info.name ? "（"+info.name+"様・満"+famAge+"歳）" : ""}`;
+  if (famText && age >= 70 && isFirst) famText.textContent = `⑥【高齢対応】満69歳以下のご家族等が同席し、説明内容と申込意向を確認した${info.name ? "（"+info.name+"様・満"+famAge+"歳）" : ""}`;
   const elderlyRow = el("elderlyCheckRow");
   if (elderlyRow) elderlyRow.classList.toggle("hidden", !(age >= 70 && !isFirst && hasContract));
   const elderText = elderlyRow ? elderlyRow.querySelector("span") : null;
-  if (elderText && age >= 70 && !isFirst) elderText.textContent = "⑤【高齢対応】複数回面談を実施し、前回説明内容と本日の申込意向を確認した";
+  if (elderText && age >= 70 && !isFirst) elderText.textContent = "⑥【高齢対応】複数回面談を実施し、前回説明内容と本日の申込意向を確認した";
   if (familyRow && !familyRow.classList.contains("hidden")) {
     const cb = el("checkFamilyAttendance");
     if (cb) cb.checked = true;
@@ -3671,7 +3676,7 @@ function selectCustomer(id) {
       const chkMap = s.checks || {};
       app._savedChecks = { ...chkMap }; // DOM非依存バックアップ
       const checkIds = ["checkIntent","checkCompare",
-                        "checkReason","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult",
+                        "checkReason","checkPublicMedical","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult",
                         "agentConfirmCheck"];
       checkIds.forEach(id => {
         const cb = el(id);
@@ -3901,7 +3906,7 @@ function viewInterviewRecord(customerId, historyId) {
   // チェックボックス復元 + app._savedChecksに保持（DOM依存しない）
   const chkMap = s.checks || {};
   app._savedChecks = { ...chkMap }; // DOM非依存のバックアップ
-  ["checkIntent","checkCompare","checkReason","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
+  ["checkIntent","checkCompare","checkReason","checkPublicMedical","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
     const cb = el(id);
     if (!cb) return;
     const v = getSavedCheckValue(id, chkMap);
@@ -4213,7 +4218,7 @@ function continueInterview() {
   if (el("intentPolished")) el("intentPolished").value = "";
   // ── 引き継ぎ時：チェックボックスをリセット（新しい面談日の確認として） ──
   ["checkIntent","checkCompare",
-   "checkReason","checkImportant","checkElderly","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
+   "checkReason","checkPublicMedical","checkImportant","checkElderly","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
     const cb = el(id);
     if (!cb) return;
     cb.checked = false;
@@ -4351,7 +4356,7 @@ function startInterview() {
 
   // チェックボックスをリセット
   ["checkIntent","checkCompare",
-   "checkReason","checkImportant","checkElderly","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
+   "checkReason","checkPublicMedical","checkImportant","checkElderly","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
     const cb = el(id);
     if (!cb) return;
     cb.checked = false;
@@ -5918,7 +5923,7 @@ function collectState() {
     nextMeetingNote: val("nextMeetingNote") || val("nextMeetingQuickNote") || "",
     checks: (function() {
       const ids = ["checkIntent","checkCompare","checkReason",
-                   "checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult",
+                   "checkPublicMedical","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult",
                    "agentConfirmCheck"];
       const result = {};
       ids.forEach(id => {
@@ -7084,8 +7089,8 @@ function generateDocument(overrideSigns, overrideChecks) {
   const isFirstForDoc = (c.meetingStatus || "") === "初回面談";
   const hasContractForDoc = contractedNeeds_doc.length > 0;
   const elderlyRow = Number(c.age) >= 70 && hasContractForDoc ? (hasElderlyCompanionRecord
-    ? `<tr><td>⑤【高齢対応】満69歳以下のご家族等が同席し、説明内容および申込意向を確認した</td><td>✓ 確認済み（${esc(elderlyCompanionInfo.name||"")} 様・満${esc(elderlyCompanionInfo.age ?? calculateAgeFromBirth(elderlyCompanionInfo.birth))}歳）</td></tr>`
-    : (!isFirstForDoc ? `<tr><td>⑤【高齢対応】複数回面談を実施し、前回説明内容と本日の申込意向を確認した</td><td>${_yn("checkElderly")}</td></tr>` : "")) : "";
+    ? `<tr><td>⑥【高齢対応】満69歳以下のご家族等が同席し、説明内容および申込意向を確認した</td><td>✓ 確認済み（${esc(elderlyCompanionInfo.name||"")} 様・満${esc(elderlyCompanionInfo.age ?? calculateAgeFromBirth(elderlyCompanionInfo.birth))}歳）</td></tr>`
+    : (!isFirstForDoc ? `<tr><td>⑥【高齢対応】複数回面談を実施し、前回説明内容と本日の申込意向を確認した</td><td>${_yn("checkElderly")}</td></tr>` : "")) : "";
 
   // 次回提案予定の表示
   const hasFollowupForDoc = Object.values(app.recommendations||{}).some(r =>
@@ -7227,8 +7232,9 @@ function generateDocument(overrideSigns, overrideChecks) {
       <table>
         <tr><td>① ご加入の目的・意向を担当者に正しく伝えた</td><td>${_yn("checkIntent")}</td></tr>
         <tr><td>② 推奨商品・比較商品の説明を受けた</td><td>${_yn("checkReason")}</td></tr>
-        <tr><td>③ 重要事項（保障内容・保険料・免責事項等）の説明を受けた</td><td>${_yn("checkImportant")}</td></tr>
-        <tr><td>④ 内容を確認・理解した上で自分の意思で判断した</td><td>${_yn("checkCompare")}</td></tr>
+        <tr><td>③ 公的医療保険制度の概要と、民間医療保険で備える範囲について説明を受け、内容を確認した</td><td>${_yn("checkPublicMedical")}</td></tr>
+        <tr><td>④ 重要事項（保障内容・保険料・免責事項等）の説明を受けた</td><td>${_yn("checkImportant")}</td></tr>
+        <tr><td>⑤ 内容を確認・理解した上で自分の意思で判断した</td><td>${_yn("checkCompare")}</td></tr>
         ${elderlyRow}
       </table>
     </div>
@@ -9207,7 +9213,7 @@ function validateElderlyMultiMeetingBeforeFinal(action) {
 // 履歴参照からは表示できるのに、最終ボタンから表示されない事故を防ぐため、
 // チェック・署名をDOMから確定し、再生成を明示した上でprintPageへ移動する。
 function collectCurrentChecksForPrint() {
-  const ids = ["checkIntent","checkCompare","checkReason","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult","agentConfirmCheck"];
+  const ids = ["checkIntent","checkCompare","checkReason","checkPublicMedical","checkImportant","checkElderly","checkFamilyAttendance","checkElderlyMulti","checkResult","agentConfirmCheck"];
   const result = { ...(app._savedChecks || {}) };
   ids.forEach(id => {
     const node = el(id);
