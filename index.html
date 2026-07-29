@@ -1,10 +1,8 @@
-
-
 <!DOCTYPE html>
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較推奨ナビ v40.48｜面談開始ガード完全版</title>
+<title>比較・意向確認ナビ v40.48｜面談開始ガード完全版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -1113,7 +1111,7 @@ body.app-locked .app-body {
 <!-- HEADER -->
 <header class="app-header">
   <div>
-    <div class="logo">📋 比較推奨ナビ</div>
+    <div class="logo">📋 比較・意向確認ナビ</div>
     <div style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:1px" id="headerAgency">保険代理店アシスト</div>
   </div>
   <div class="sep"></div><button id="securityChangePasswordBtn" type="button" onclick="securityChangePassword()" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 6px;">🔑 変更</button><button id="securityLogoutBtn" type="button" onclick="securityLockApp()" style="border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.12); color: rgb(255, 255, 255); border-radius: 18px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; margin-right: 8px;">🔒 ロック</button>
@@ -1411,7 +1409,7 @@ body.app-locked .app-body {
   <!-- 4. 録音・整文 -->
   <section id="recordPage" class="page">
     <div class="section-title">意向確認・整文</div>
-    <div class="section-sub">面談内容をメモして「推奨理由を自動作成」を押してください</div>
+    <div class="section-sub">面談内容をメモして「比較・選択結果を自動作成」を押してください</div>
 
     <!-- ① 録音バー（折りたたみ） -->
     <details style="margin-bottom:12px">
@@ -1429,7 +1427,7 @@ body.app-locked .app-body {
           ⚠️ 録音中はこの画面を離れないでください
         </div>
         <audio id="recordingPlayer" controls="" class="hidden mt8" style="width:100%;height:36px"></audio>
-        <div class="note-box info" style="margin-top:10px;font-size:12px">💡 録音後、内容をメモ欄に転記して「推奨理由を自動作成」を押してください</div>
+        <div class="note-box info" style="margin-top:10px;font-size:12px">💡 録音後、内容をメモ欄に転記して「比較・選択結果を自動作成」を押してください</div>
       </div>
     </details>
 
@@ -1459,7 +1457,7 @@ body.app-locked .app-body {
     <!-- ③ 自動作成ボタン（メイン） -->
     <div style="text-align:center;margin-bottom:16px">
       <button class="btn btn-purple" onclick="polishLocally()" style="font-size:15px;padding:13px 36px;width:100%;max-width:420px;border-radius:12px">
-        🔒 推奨理由を自動作成
+        🔒 比較・選択結果を自動作成
       </button>
       <div style="font-size:11px;color:var(--text-light);margin-top:5px">端末内処理・外部送信なし</div>
     </div>
@@ -1512,7 +1510,7 @@ body.app-locked .app-body {
         </div>
       </details>
 
-      <textarea id="intentPolished" placeholder="「推奨理由を自動作成」を押すと、ここに意向確認書向けの文章が生成されます。生成後に直接編集することもできます。" style="width: 100%; box-sizing: border-box; display: block; min-height: 200px; height: 200px; overflow-y: auto; resize: vertical;" oninput="updateLineCharCount()"></textarea>
+      <textarea id="intentPolished" placeholder="「比較・選択結果を自動作成」を押すと、お客様が比較して判断した内容を中心に意向確認書向けの文章が生成されます。生成後に直接編集することもできます。" style="width: 100%; box-sizing: border-box; display: block; min-height: 200px; height: 200px; overflow-y: auto; resize: vertical;" oninput="updateLineCharCount()"></textarea>
       <div id="lineCharWarning" style="font-size:11px;margin-top:4px;display:none"></div>
 
       <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
@@ -1550,7 +1548,7 @@ body.app-locked .app-body {
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" id="checkReason">
-        <span>② 推奨する商品・比較した商品の説明を受けました</span>
+        <span>② 比較した商品・選択した商品の説明を受けました</span>
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" id="checkPublicMedical">
@@ -2221,7 +2219,7 @@ function showSecurityLoginOverlay() {
     </div>` : `
     <div class="security-login-box">
       <div style="font-size:28px;margin-bottom:8px">🔐</div>
-      <h2>比較推奨ナビ ログイン</h2>
+      <h2>比較・意向確認ナビ ログイン</h2>
       <p>顧客情報・面談記録を保護するため、パスワードを入力してください。</p>
       <input id="securityPasswordInput" type="password" placeholder="パスワード" autocomplete="current-password">
       <div id="securityLoginError"></div>
@@ -2264,7 +2262,7 @@ function checkLocalStorageWritable() {
     const storedVer = localStorage.getItem(STORED_VERSION_KEY);
     if (storedVer !== APP_VERSION) {
       safeSaveLocalStorage(STORED_VERSION_KEY, APP_VERSION);
-      console.log("比較推奨ナビ v" + APP_VERSION + " 更新完了（右上ボタン再接続修正版・顧客データは保持）");
+      console.log("比較・意向確認ナビ v" + APP_VERSION + " 更新完了（右上ボタン再接続修正版・顧客データは保持）");
     }
   } catch(e) {
     console.warn("localStorageが利用できない環境です。通常モードで開いてください。", e);
@@ -5556,8 +5554,8 @@ function renderRecommendations() {
           </div>
         </div>
       ` : `
-      <div class="rec-product">📦 提案：${esc(r.product)}</div>
-      <div class="rec-reason">💬 ${esc(r.reason)}</div>
+      <div class="rec-product">📦 比較・確認商品：${esc(r.product)}</div>
+      <div class="rec-reason">💬 比較・確認ポイント：${esc(customerDecisionSafeTextV1(r.reason))}</div>
       ${need === "cancer" ? `
       <details style="margin-bottom:10px" open>
         <summary style="cursor:pointer;font-weight:700;font-size:13px;color:var(--green-dark);padding:8px 12px;background:var(--green-light);border-radius:8px;list-style:none;display:flex;align-items:center;gap:6px">
@@ -5639,7 +5637,7 @@ function renderRecommendations() {
           priorityBadge = `<span style="display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700;background:${pBg};color:${pColor};border:1.5px solid ${pColor};margin-bottom:8px">優先度 ${priority}</span>`;
         }
 
-        // ── 金融庁対応：推奨理由・比較観点・注意点ブロック ──
+        // ── 比較説明の事実・比較観点・注意点ブロック ──
         let complianceBlock = "";
         if (isHojin) {
           const loan     = app.answers.hojinLoan     || "未回答";
@@ -5648,7 +5646,7 @@ function renderRecommendations() {
           let recReason = "", compareView = "", caution = "";
           if (need === "hojin_death") {
             recReason   = loan !== "なし" && loan !== "未回答"
-              ? `借入金（${loan}）があるため、借入残高の逓減に対応した逓減定期保険を優先的にご案内しました。また経営者の万一に備える定期保険系を併せて比較しました。`
+              ? `借入金（${loan}）への備えとして、借入残高の逓減に対応する逓減定期保険と、経営者の万一に備える定期保険系を比較対象として確認します。`
               : "経営者保障・事業保障ニーズに対応するため、平準定期・ニューエグゼクティブライフ・生前給付型を比較しました。";
             compareView = "保障額、保険期間、保険料水準、解約返戻金の有無、法人目的との適合性（事業保障・借入金対策）";
             caution     = "実際の保険料・経理処理・損金算入可否は各社パンフレット・約款と顧問税理士にご確認ください。";
@@ -5660,14 +5658,14 @@ function renderRecommendations() {
             caution     = "養老保険・定期保険・変額商品の税務取り扱い（資産計上・損金算入・役員報酬との関係）は顧問税理士にご確認ください。変額商品は元本割れリスク・運用方針・費用・適合性確認を必ず説明してください。";
           } else if (need === "hojin_welfare") {
             recReason   = successor === "未定"
-              ? "後継者が未定のため、相続・事業承継対策を視野に入れた終身系・団体定期を優先しました。"
+              ? "後継者が未定のため、相続・事業承継対策を視野に入れ、終身系・団体定期を比較対象として確認します。"
               : "福利厚生制度（弔慰金・生存退職金）の整備を目的に、団体定期・養老保険系・終身保険系を比較しました。";
             compareView = "対象者（全従業員・役員のみ）、保険料負担、解約返戻金の活用方法、相続財産としての位置付け";
             caution     = "福利厚生目的の場合、全従業員への普遍的加入など要件確認が必要です。外貨建商品は為替リスクの説明義務があります。詳細はパンフレット・約款と顧問税理士にご確認ください。";
           }
           complianceBlock = `
             <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;margin:8px 0 10px;font-size:12px;line-height:1.8">
-              <div style="font-weight:700;color:#1e40af;margin-bottom:4px">📋 推奨理由（金融庁比較推奨対応）</div>
+              <div style="font-weight:700;color:#1e40af;margin-bottom:4px">📋 比較説明の参考情報</div>
               <div style="color:#374151;margin-bottom:8px">${esc(recReason)}</div>
               <div style="font-weight:700;color:#374151;margin-bottom:2px">🔍 比較した主な観点</div>
               <div style="color:#6b7280;margin-bottom:8px">${esc(compareView)}</div>
@@ -5840,7 +5838,7 @@ function renderRecommendations() {
         </div>
       </div>
       <div class="field" style="background:var(--surface2);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px">
-        <label>比較推奨の根拠
+        <label>比較説明とお客様の判断
           <select onchange="insertCompareTarget('${esc(need)}', this)" style="margin-left:8px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;color:var(--text-mid)">
             <option value="">📝 定型文...</option>
             <optgroup label="─ 比較対象 ─">
@@ -5870,10 +5868,10 @@ function renderRecommendations() {
         <label>補足メモ
           <select onchange="insertRecommendationMemo('${esc(need)}', this)" style="margin-left:8px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;color:var(--text-mid)">
             <option value="">📝 定型文を挿入...</option>
-            <optgroup label="─ 比較・推奨 ─">
+            <optgroup label="─ 比較・お客様の選択 ─">
               <option value="ひまわり生命とソニー生命を比較した上でお客様にご選択いただきました">比較検討の上で選択</option>
-              <option value="複数商品を比較した中でこちらの商品をお選びいただきました">比較推奨で決定</option>
-              <option value="お客様のご意向・ご予算に最も合致するためご提案しました">意向・予算に合致</option>
+              <option value="複数商品の保障内容・保険料等を比較し、お客様ご自身でこちらの商品を選択されました">比較の上でお客様が決定</option>
+              <option value="お客様はご意向・ご予算との適合性を確認し、こちらの商品を選択されました">意向・予算に合致</option>
               <option value="他社商品と比較の上、保障内容・保険料ともにご納得いただきました">他社比較・ご納得</option>
             </optgroup>
             <optgroup label="─ 次回アクション ─">
@@ -6048,7 +6046,7 @@ function downloadCleanCopy() {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   const versionLabel = (typeof APP_VERSION !== "undefined" ? APP_VERSION.replace(/\./g, "_") : "unknown");
-  a.download = `比較推奨ナビ_v${versionLabel}_クリーン配布版_${date}.html`;
+  a.download = `比較・意向確認ナビ_v${versionLabel}_クリーン配布版_${date}.html`;
   a.click();
   setStatus("🧹 個人情報を除去したクリーン配布版をダウンロードしました。");
 }
@@ -6088,7 +6086,7 @@ function makeSecurityBackupEnvelope(payload, backupPassword) {
   return {
     _encryptedBackup: true,
     _backupEncVersion: 2,
-    _app: "比較推奨ナビ",
+    _app: "比較・意向確認ナビ",
     _version: APP_VERSION,
     _createdAt: new Date().toISOString(),
     _passwordHint: "バックアップ作成時に設定したバックアップ用パスワードで復元してください",
@@ -6128,7 +6126,7 @@ function exportData() {
   const c = state.customer;
   const name = c ? (customerDisplayName(c) || c.name || "未登録").replace(/\s/g, "_") : "未登録";
   const date = new Date().toISOString().slice(0, 10);
-  const filename = `比較推奨ナビ_${name}_${date}.json`;
+  const filename = `比較・意向確認ナビ_${name}_${date}.json`;
   const backupPassword = promptBackupPasswordForExport();
   if (!backupPassword) { setStatus("1件エクスポートをキャンセルしました。", "warn"); return; }
   const exportPayload = makeSecurityBackupEnvelope(state, backupPassword);
@@ -6161,7 +6159,7 @@ function exportAllData() {
     customers,
     histories: allHistories
   };
-  const filename = `比較推奨ナビ_全顧客バックアップ_${agentName}_${date}.json`;
+  const filename = `比較・意向確認ナビ_全顧客バックアップ_${agentName}_${date}.json`;
   const exportPayload = makeSecurityBackupEnvelope(backup, backupPassword);
   const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json;charset=utf-8" });
   const a = document.createElement("a");
@@ -6434,7 +6432,7 @@ function updateLineCharCount() {
   } else {
     countEl.style.background = "#fee2e2";
     countEl.style.color = "#991b1b";
-    if (warnEl) { warnEl.style.display = "block"; warnEl.style.color = "#991b1b"; warnEl.textContent = `🚨 ${count}文字。意向確認書には長めです。推奨理由・結論を残して要約してください。`; }
+    if (warnEl) { warnEl.style.display = "block"; warnEl.style.color = "#991b1b"; warnEl.textContent = `🚨 ${count}文字。意向確認書には長めです。比較内容・お客様の判断・結論を残して要約してください。`; }
   }
 }
 
@@ -6923,6 +6921,48 @@ function formatPrintLongText(text, emptyLabel = "（未記入）") {
   ).join("")}</div>`;
 }
 
+// 顧客向け帳票では募集人の推奨表現を使わず、比較説明の事実とお客様の判断を記録する。
+function customerDecisionSafeTextV1(text) {
+  return String(text || "")
+    .replace(/募集人(?:から|が|より)?/g, "")
+    .replace(/を推奨しました/g, "を比較・確認しました")
+    .replace(/推奨しました/g, "比較・確認しました")
+    .replace(/推奨されました/g, "選択されました")
+    .replace(/推奨商品/g, "選択商品")
+    .replace(/推奨理由/g, "選択理由")
+    .replace(/推奨します/g, "比較・確認します")
+    .replace(/推奨する/g, "比較対象とする")
+    .replace(/ご提案しました/g, "内容をご説明しました")
+    .replace(/提案しました/g, "説明しました")
+    .replace(/比較推奨/g, "比較説明")
+    .replace(/推奨/g, "比較・選択")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function buildCustomerDecisionSummaryV1(need, recommendation) {
+  const r = recommendation || {};
+  const label = (needLabels || {})[need] || need || "保障";
+  const product = cleanProductNameV31(r.contract || r.product || "選択商品");
+  const axis = r.compareAxis || "保障内容・給付条件・保険料";
+  const target = r.compareTargets || (product ? `「${product}」を含む候補商品` : `${label}の候補商品`);
+  const status = r.status || "未提案";
+  const comparison = `${target}について、${axis}を比較・確認しました。`;
+  if (status === "成約") {
+    return `${comparison}お客様は「${product}」がご自身の意向に合うと判断され、お申し込みを希望されました。`;
+  }
+  if (status === "申込意向あり・次回手続き") {
+    return `${comparison}お客様は「${product}」がご自身の意向に合うと判断され、次回手続きに進むことを希望されました。`;
+  }
+  if (status === "今回は見送り") {
+    return `${comparison}お客様は内容を確認した結果、今回は加入を見送ると判断されました。`;
+  }
+  if (["次回再提案", "設計書持ち帰り", "家族に相談"].includes(status)) {
+    return `${comparison}お客様は内容を確認し、「${statusLabelV31(status)}」と判断されました。`;
+  }
+  return `${comparison}お客様に内容をご確認いただきました。`;
+}
+
 function generateDocument(overrideSigns, overrideChecks) {
   // 編集済みの意向確認書がある場合は、通常表示ではそれを優先する。
   // 再生成は forceRegenerateDocument() から明示的に行う。
@@ -7065,7 +7105,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       }).join("")
     : "";
 
-  // 2章：今回成約した保障の推奨理由を詳記
+  // 2章：比較説明の事実とお客様の選択結果を詳記
   let detail = contractedNeeds_doc.length > 0
     ? contractedNeeds_doc.map(need => {
         const r = app.recommendations[need] || {};
@@ -7075,10 +7115,11 @@ function generateDocument(overrideSigns, overrideChecks) {
           : `提案商品：<span style="font-size:12px">${esc(r.product || "－")}</span>`;
         const compareLines = buildComparisonLinesV31(r);
         const compareDisplay = compareLines.length ? `<br>　<span style="color:#444;font-size:12px">🔎 ${esc(compareLines.join(" ／ "))}</span>` : "";
-        const cleanMemo = dedupeSentencesV31(r.memo || "");
+        const cleanMemo = customerDecisionSafeTextV1(dedupeSentencesV31(r.memo || ""));
         const memoDisplay = cleanMemo ? `<br>　<span style="color:#555;font-size:12px">📝 ${esc(cleanMemo)}</span>` : "";
         const suitDisplay = "";
-        return `<p><b>${esc(needLabels[need])}：</b>${esc(r.reason||"")}<br>　${productDisplay}　結果：<b style="color:#065f46">${esc(status)}</b>${compareDisplay}${memoDisplay}${suitDisplay}</p>`;
+        const decisionSummary = buildCustomerDecisionSummaryV1(need, r);
+        return `<p><b>${esc(needLabels[need])}：</b>${esc(decisionSummary)}<br>　${productDisplay}　結果：<b style="color:#065f46">${esc(status)}</b>${compareDisplay}${memoDisplay}${suitDisplay}</p>`;
       }).join("")
     : "<p>今回成約・申込意向の保障はありません。</p>";
   detail += buildDeathExtraDetailHtml(contractedNeeds_doc);
@@ -7107,7 +7148,7 @@ function generateDocument(overrideSigns, overrideChecks) {
         ${nextMeetingNote ? `<tr><td>次回テーマ・メモ</td><td>${esc(nextMeetingNote)}</td></tr>` : ""}
         ${Object.entries(app.recommendations||{}).filter(([,r])=>["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status))
           .map(([need,r])=>{
-            const cleanMemo = dedupeSentencesV31(r.memo || "");
+        const cleanMemo = customerDecisionSafeTextV1(dedupeSentencesV31(r.memo || ""));
             return `<tr><td>${esc((needLabels||{})[need]||need)}</td><td>${esc(r.status)}${cleanMemo?`（${esc(cleanMemo)}）`:""}</td></tr>`;
           }).join("")}
       </table>
@@ -7205,7 +7246,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       <h3>3. 意向確認対象（今回成約・申込意向）</h3>
       <p style="font-size:11px;color:#6b7280;margin-bottom:4px">本章は今回の面談で成約またはお申込意向が確認された保障のみ記録します。</p>
       <table>
-        <thead><tr><th style="width:18%">保障分野</th><th style="width:16%">結果</th><th style="width:66%">成約商品・推奨根拠</th></tr></thead>
+        <thead><tr><th style="width:18%">保障分野</th><th style="width:16%">結果</th><th style="width:66%">選択商品・比較内容</th></tr></thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
@@ -7231,7 +7272,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       <h3>5. 確認事項</h3>
       <table>
         <tr><td>① ご加入の目的・意向を担当者に正しく伝えた</td><td>${_yn("checkIntent")}</td></tr>
-        <tr><td>② 推奨商品・比較商品の説明を受けた</td><td>${_yn("checkReason")}</td></tr>
+        <tr><td>② 比較した商品・選択した商品の説明を受けた</td><td>${_yn("checkReason")}</td></tr>
         <tr><td>③ 公的医療保険制度の概要と、民間医療保険で備える範囲について説明を受け、内容を確認した</td><td>${_yn("checkPublicMedical")}</td></tr>
         <tr><td>④ 重要事項（保障内容・保険料・免責事項等）の説明を受けた</td><td>${_yn("checkImportant")}</td></tr>
         <tr><td>⑤ 内容を確認・理解した上で自分の意思で判断した</td><td>${_yn("checkCompare")}</td></tr>
@@ -7694,26 +7735,14 @@ function buildRecommendationReasonLinesV31(f) {
     const product = cleanProductNameV31(r.product);
     const base = r.label || "保障";
     const status = r.status || "未提案";
-
-    let reason = "";
-    if (base.includes("がん")) {
-      if ((f.memoPoints || []).some(x => x.includes("上皮内がん"))) {
-        reason = "既契約で不安のあった上皮内がんの保障を確認でき、同額保障や保険料払込免除を含めて意向に合致したため";
-      } else if ((f.priorities || []).some(x => x.includes("一時金"))) {
-        reason = "診断時にまとまった資金を受け取れる点が意向に合致したため";
-      } else if ((f.priorities || []).some(x => x.includes("長期") || x.includes("継続"))) {
-        reason = "治療が長期化した場合の給付を重視されたため";
-      }
-    }
-    if (!reason && r.reason) reason = r.reason.replace(/します$/, "したため").replace(/比較します$/, "比較したため");
-    if (!reason) reason = "お客様の意向と保障内容が合致しているため";
-
+    const axis = r.compareAxis || "保障内容・給付条件・保険料";
+    const target = r.compareTargets || (product ? `「${product}」を含む候補商品` : `${base}の候補商品`);
     if (["成約", "申込意向あり・次回手続き"].includes(status)) {
-      lines.push(`${base}は、${product ? `「${product}」` : "選択商品"}を選択。${reason}。`);
+      lines.push(`${base}は、${target}について${axis}を比較・確認し、お客様が${product ? `「${product}」` : "選択商品"}をご自身の意向に合うものとして選択。`);
     } else if (["次回再提案", "設計書持ち帰り", "家族に相談"].includes(status)) {
-      lines.push(`${base}は、内容を確認のうえ${status}。`);
+      lines.push(`${base}は、${target}の内容を確認し、お客様が${status}と判断。`);
     } else if (status && status !== "未提案") {
-      lines.push(`${base}は「${status}」として記録。`);
+      lines.push(`${base}は、比較内容を確認した結果、お客様が「${status}」と判断。`);
     }
   });
   return uniqueV31(lines);
@@ -7724,7 +7753,7 @@ function buildPreviewTextV31(f) {
   lines.push("【整文前チェック】");
   lines.push("不安・目的：" + (f.concerns.length ? sentenceJoinV31(f.concerns) : "未検出"));
   lines.push("重視点：" + (f.priorities.length ? sentenceJoinV31(f.priorities) : "未検出"));
-  lines.push("比較・推奨：" + (buildRecommendationReasonLinesV31(f).length ? buildRecommendationReasonLinesV31(f).join(" ") : "未検出"));
+  lines.push("比較説明・お客様の判断：" + (buildRecommendationReasonLinesV31(f).length ? buildRecommendationReasonLinesV31(f).join(" ") : "未検出"));
   lines.push("判断・結論：" + (f.decisions.length ? sentenceJoinV31(f.decisions) : "未検出"));
   lines.push("次回対応：" + (f.nextActions.length ? sentenceJoinV31(f.nextActions) : "なし"));
   if (f.carried && f.carried.length) lines.push("引き継ぎ：" + f.carried.map(r => `${r.label}は前回成約済み`).join("、"));
@@ -7744,7 +7773,7 @@ function statusLabelV31(status) {
   return map[status] || status || "未設定";
 }
 
-function recommendationReasonV31(r, f) {
+function customerSelectionBasisV31(r, f) {
   const label = r.label || "保障";
   const isCancer = label.includes("がん");
   const priorities = f.priorities || [];
@@ -7754,23 +7783,13 @@ function recommendationReasonV31(r, f) {
     priorities.some(x => x.includes("上皮内がん"))
   );
 
-  if (r.memo) {
-    return dedupeSentencesV31(r.memo)
-      .replace(/。$/, "")
-      .replace(/ご納得いただきました$/, "ご納得いただいたため")
-      .replace(/ご選択いただきました$/, "ご選択いただいたため")
-      .replace(/説明し、ご理解いただきました$/, "説明し、ご理解いただいたため")
-      .replace(/確認しました$/, "確認したため")
-      .replace(/しました$/, "したため");
-  }
-  if (r.compareAxis) return `${r.compareAxis}の観点で比較し、お客様の意向に合致したため`;
-  if (isCancer && hasEpithelial) return "上皮内がんも保障対象となる点がお客様の不安解消に合致したため";
-  if (isCancer && priorities.some(x => x.includes("一時金"))) return "診断時にまとまった一時金を受け取れる点が意向に合致したため";
-  if (isCancer && priorities.some(x => x.includes("長期") || x.includes("継続"))) return "治療が長期化した場合の継続的な給付を重視されたため";
-  if (r.need === "medical") return "入院・手術時の保障内容と保険料を確認し、不足分の補完意向に合致したため";
-  if (r.need === "asset" || r.need === "retirement") return "老後資金・将来資金の準備として、保障内容と運用リスクを確認したうえで意向に合致したため";
-  if (r.reason) return r.reason.replace(/します$/, "したため").replace(/比較します$/, "比較したため");
-  return "保障内容・給付条件・保険料を確認し、お客様の意向に合致したため";
+  if (r.compareAxis) return `${r.compareAxis}の観点から、ご自身の意向に合うと判断され`;
+  if (isCancer && hasEpithelial) return "上皮内がんも保障対象となる点が、ご自身の不安への備えに合うと判断され";
+  if (isCancer && priorities.some(x => x.includes("一時金"))) return "診断時にまとまった一時金を受け取れる点を重視され";
+  if (isCancer && priorities.some(x => x.includes("長期") || x.includes("継続"))) return "治療が長期化した場合の継続的な給付を重視され";
+  if (r.need === "medical") return "入院・手術時の保障内容と保険料が、不足分を補う意向に合うと判断され";
+  if (r.need === "asset" || r.need === "retirement") return "保障内容と運用リスクを確認し、老後・将来資金の準備という意向に合うと判断され";
+  return "保障内容・給付条件・保険料が、ご自身の意向に合うと判断され";
 }
 
 function previewPolishFacts() {
@@ -7822,11 +7841,11 @@ function localPolishV31(memo, contractSummary) {
       const compareSentence = buildComparisonSentenceV31(r);
       if (compareSentence) parts.push(compareSentence);
       if (["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status)) {
-        parts.push(`${r.label}については「${product || "提案商品"}」の内容を説明し、${statusLabelV31(r.status)}となりました。`);
+        parts.push(`${r.label}については「${product || "比較商品"}」の内容を確認され、${statusLabelV31(r.status)}となりました。`);
       } else if (r.status === "今回は見送り") {
         parts.push(`${r.label}については内容を確認いただいたうえで、今回は見送りとなりました。`);
       } else if (r.status && r.status !== "未提案") {
-        parts.push(`${r.label}については「${product || "提案商品"}」を説明し、${statusLabelV31(r.status)}となりました。`);
+        parts.push(`${r.label}については「${product || "比較商品"}」の内容を確認され、${statusLabelV31(r.status)}となりました。`);
       }
     });
     if (f.nextActions.length) {
@@ -7906,21 +7925,16 @@ function localPolishV31(memo, contractSummary) {
       : (isCancer ? "ひまわり生命およびソニー生命の該当商品" : "ひまわり生命・ソニー生命の該当商品");
     parts.push(`${compareTarget}について${axis}を比較説明しました。`);
 
-    // ④ 推奨理由（「なぜこの商品か」を具体的に・主語なし）
-    const reason = recommendationReasonV31(r, f);
-    // reasonが「ためです」で終わる場合は「ため」に変換
-    const reasonClean = reason
-      .replace(/ためです。?$/, "ため")
-      .replace(/したため。?$/, "したため")
-      .replace(/いただいたため。?$/, "いただいたため");
+    // ④ お客様の選択理由（比較軸と意向に基づく判断を記録）
+    const selectionBasis = customerSelectionBasisV31(r, f);
 
-    // ⑤ 申込意向（主語なし・自然な書き言葉）
+    // ⑤ お客様の申込意向
     const resultText = r.status === "申込意向あり・次回手続き"
-      ? "次回手続きに進むご意向を確認しました"
-      : "内容をご確認のうえ、お申し込みをご希望されました";
+      ? "次回手続きに進むことを希望されました"
+      : "お申し込みを希望されました";
 
     // ③〜⑤を1段落にまとめる
-    parts.push(`その結果、候補の一つとして「${product || "提案商品"}」をご説明しました。${reasonClean}ことから、${resultText}。`);
+    parts.push(`比較内容を確認した結果、お客様は「${product || "選択商品"}」について${selectionBasis}、${resultText}。`);
   });
 
   // 次回提案・見送りもあれば記録
@@ -7928,7 +7942,7 @@ function localPolishV31(memo, contractSummary) {
     const product = cleanProductNameV31(r.product);
     const compareSentence = buildComparisonSentenceV31(r);
     if (compareSentence) parts.push(compareSentence);
-    parts.push(`${r.label}については「${product || "提案商品"}」の内容を確認し、${statusLabelV31(r.status)}となりました。`);
+    parts.push(`${r.label}については「${product || "比較商品"}」の内容を確認され、${statusLabelV31(r.status)}となりました。`);
   });
   declined.forEach(r => {
     const product = cleanProductNameV31(r.product);
@@ -8062,10 +8076,10 @@ function initClosingButtons() {
 function polishLocally() {
   const memo = val("intentMemo").trim();
   const hasInterviewData = (app.needs && app.needs.length > 0) || Object.keys(app.answers || {}).length > 0 || Object.keys(app.recommendations || {}).length > 0;
-  if (!memo && !hasInterviewData) { setStatus("自動作成に必要な面談データがありません。質問フローまたは提案・結果を入力してください。", "warn"); return; }
+  if (!memo && !hasInterviewData) { setStatus("自動作成に必要な面談データがありません。質問フローまたは比較・結果を入力してください。", "warn"); return; }
 
   el("intentPolished").value = "";
-  setStatus("🔒 推奨理由・意向文を自動作成しています...");
+  setStatus("🔒 比較・選択結果と意向文を自動作成しています...");
 
   const _sess = { customer: app.customer };
   const contractSummary = (app.needs || []).map(need => {
@@ -8106,7 +8120,7 @@ function polishLocally() {
       // 整文完了後はチェック用プレビューを自動で閉じる
       const factBox = el("polishFactPreview");
       if (factBox) factBox.classList.add("hidden");
-      setStatus("✅ 推奨理由・意向確認文を自動作成しました。必要に応じて確認・修正してください。");
+      setStatus("✅ 比較・選択結果と意向確認文を自動作成しました。必要に応じて確認・修正してください。");
       autoSave();
 
     } catch(e) {
@@ -8114,7 +8128,7 @@ function polishLocally() {
       const fallback = memo ? normalizeMemoV31(memo) : localPolishV31("", contractSummary);
       el("intentPolished").value = fallback || memo;
       updateLineCharCount();
-      const msg = e.message === "empty_result" ? "自動作成結果が空になりました。提案・結果またはメモをもう少し詳しく入力してください。"
+      const msg = e.message === "empty_result" ? "自動作成結果が空になりました。比較・結果またはメモをもう少し詳しく入力してください。"
                 : `自動作成中にエラーが発生しました（${e.message}）。フォールバック整形を適用しました。`;
       setStatus("⚠ " + msg, "warn");
       const retry = el("polishRetryBtn");
@@ -8553,9 +8567,10 @@ SOMPOひまわり生命の主力医療保険。入院日額給付金を基本保
 ・がん通院給付金<br>
 ・がん診断給付金（オプション）<br>
 ・先進医療特約<br><br>
-<b>💡 比較推奨時のポイント</b><br>
-・ひまわり勇気のお守りとの比較が金融庁の比較推奨販売規制で求められる<br>
-・給付内容・保険料・告知条件を顧客ニーズに照らし合わせて推奨根拠を明記すること<br><br>
+<b>💡 比較説明時の確認ポイント</b><br>
+・複数商品を比較する場合は、給付内容・保険料・告知条件などを正確に説明する<br>
+・お客様が重視した比較軸と、比較後に選択・見送りを判断した結果を記録する<br>
+・所属代理店・保険会社の社内規程で追加記録が必要な場合は、その規程にも従う<br><br>
 <b>⚠️ 注意点</b><br>
 ・免責期間（90日）の説明必須<br>
 ・上皮内がんの扱い（給付対象外か対象かの確認）`},
@@ -9901,8 +9916,636 @@ window.addEventListener("resize", () => {
 </script>
 
 <div id="toastNotif" style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgb(146, 64, 14); color: rgb(255, 255, 255); padding: 10px 20px; border-radius: 24px; font-size: 14px; font-weight: 700; z-index: 9999; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; max-width: 90vw; text-align: center; box-shadow: rgba(0, 0, 0, 0.3) 0px 4px 20px;">👤 担当者名を設定してください（画面上部の「担当者設定」欄）</div>
+<style>
+  .intent-progress-card { border: 2px solid var(--green-mid); padding: 16px 18px; }
+  .intent-progress-card .intent-required { color: #b42318; font-weight: 700; }
+  .intent-progress-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .intent-progress-status { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:5px 10px; font-size:12px; font-weight:800; background:#fff4e8; color:#9a4b16; }
+  .intent-progress-status.complete { background:#e7f7ed; color:#176b3a; }
+  .intent-progress-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:12px 0; }
+  .intent-stage-chip { border:1px solid var(--border); border-radius:9px; padding:9px 10px; background:#fafaf8; min-width:0; }
+  .intent-stage-chip strong { display:block; color:var(--green-dark); font-size:12px; margin-bottom:3px; }
+  .intent-stage-chip span { display:block; color:var(--text-mid); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .intent-savings-quick { display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding:10px 12px; border-radius:9px; background:var(--green-light); }
+  .intent-savings-quick-label { font-size:12px; font-weight:800; color:var(--green-dark); margin-right:auto; }
+  .intent-savings-choice { border:1px solid var(--green-mid); background:#fff; color:var(--green-dark); border-radius:999px; padding:6px 11px; font-size:12px; font-weight:700; cursor:pointer; }
+  .intent-savings-choice.active { background:var(--green-dark); color:#fff; border-color:var(--green-dark); }
+  .intent-modal { position:fixed; inset:0; z-index:12000; display:none; align-items:center; justify-content:center; padding:24px; background:rgba(21,35,28,.55); }
+  .intent-modal.open { display:flex; }
+  .intent-modal-panel { width:min(1080px,96vw); max-height:90vh; overflow:auto; background:var(--surface); border-radius:14px; box-shadow:0 18px 60px rgba(0,0,0,.28); padding:20px; }
+  .intent-modal-head { position:sticky; top:-20px; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:12px; margin:-20px -20px 14px; padding:16px 20px; background:var(--surface); border-bottom:1px solid var(--border-light); }
+  .intent-modal-close { border:0; background:transparent; color:var(--text-mid); font-size:24px; line-height:1; cursor:pointer; }
+  .intent-progress-table-wrap { overflow-x: auto; }
+  .intent-progress-table { width: 100%; min-width: 860px; border-collapse: collapse; }
+  .intent-progress-table th,
+  .intent-progress-table td { border: 1px solid var(--border); padding: 9px; vertical-align: top; }
+  .intent-progress-table th { background: var(--green-light); color: var(--green-dark); font-size: 12px; }
+  .intent-progress-table .intent-stage { width: 74px; font-weight: 800; text-align: center; white-space: nowrap; }
+  .intent-progress-table input,
+  .intent-progress-table select,
+  .intent-progress-table textarea,
+  #intentChangeSummary {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+  }
+  .intent-progress-table textarea { min-height: 76px; resize: vertical; line-height: 1.55; }
+  #intentChangeSummary { min-height: 88px; resize: vertical; line-height: 1.6; }
+  .intent-progress-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 0; }
+  .intent-progress-error { outline: 2px solid #d92d20 !important; background: #fff7f6 !important; }
+  @media (max-width: 760px) {
+    .intent-progress-card { padding: 14px; }
+    .intent-progress-summary { grid-template-columns:1fr; }
+    .intent-modal { padding:10px; }
+    .intent-modal-panel { max-height:94vh; padding:14px; }
+    .intent-modal-head { top:-14px; margin:-14px -14px 12px; padding:13px 14px; }
+  }
+  @media print {
+    .intent-progress-print { break-inside: avoid; page-break-inside: avoid; }
+    .intent-progress-print table { table-layout: fixed; }
+    .intent-progress-print th,
+    .intent-progress-print td { font-size: 10.5px !important; padding: 5px 6px !important; }
+  }
+</style>
 
+<script>
+(() => {
+  "use strict";
 
+  const STAGES = [
+    { key: "estimated", label: "推定の意向" },
+    { key: "initial", label: "当初の意向" },
+    { key: "final", label: "最終の意向" }
+  ];
+  const STORAGE_PREFIX = "ins_nav_intent_progress_v1_";
+  const AUTO_NO_CHANGE_TEXT = "推定・当初・最終を通じて意向の変更なし。";
+  const AUTO_CHANGE_DETAIL_TEXT = "変更理由・判断内容の詳細は意向確認文に記載。";
+  let lastIntentContextKey = "";
 
+  function intentEsc(value) {
+    return String(value || "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[char]));
+  }
+
+  function intentContextKey() {
+    const customerId = (typeof app !== "undefined" && app.customer && app.customer.id)
+      ? app.customer.id
+      : "unsaved";
+    const meetingDate = (typeof app !== "undefined" && app._interviewDate)
+      || (document.getElementById("interviewDate") || {}).value
+      || "undated";
+    return `${customerId}_${meetingDate}`;
+  }
+
+  function intentStorageKey() {
+    return STORAGE_PREFIX + intentContextKey();
+  }
+
+  function defaultIntentData() {
+    const meetingDate = (typeof app !== "undefined" && app._interviewDate)
+      || (document.getElementById("interviewDate") || {}).value
+      || "";
+    const stages = {};
+    STAGES.forEach(stage => {
+      stages[stage.key] = { date: meetingDate, intention: "", savings: "", note: "" };
+    });
+    return {
+      contextKey: intentContextKey(),
+      stages,
+      changeSummary: "",
+      manualChangeSummary: false,
+      manualFinal: false
+    };
+  }
+
+  function readIntentForm() {
+    const data = defaultIntentData();
+    STAGES.forEach(stage => {
+      data.stages[stage.key] = {
+        date: (document.getElementById(`intent_${stage.key}_date`) || {}).value || "",
+        intention: (document.getElementById(`intent_${stage.key}_text`) || {}).value || "",
+        savings: (document.getElementById(`intent_${stage.key}_savings`) || {}).value || "",
+        note: (document.getElementById(`intent_${stage.key}_note`) || {}).value || ""
+      };
+    });
+    data.contextKey = intentContextKey();
+    data.changeSummary = (document.getElementById("intentChangeSummary") || {}).value || "";
+    data.manualChangeSummary =
+      (document.getElementById("intentChangeSummary") || {}).dataset?.manual === "1";
+    data.manualFinal = (document.getElementById("intent_final_text") || {}).dataset?.manual === "1";
+    return data;
+  }
+
+  function normalizeIntentData(raw) {
+    const data = defaultIntentData();
+    if (!raw || typeof raw !== "object") return data;
+    STAGES.forEach(stage => {
+      data.stages[stage.key] = {
+        ...data.stages[stage.key],
+        ...((raw.stages && raw.stages[stage.key]) || {})
+      };
+    });
+    data.changeSummary = raw.changeSummary || "";
+    data.manualChangeSummary = raw.manualChangeSummary === true
+      || (!!raw.changeSummary && raw.manualChangeSummary !== false && raw.changeSummary !== AUTO_NO_CHANGE_TEXT);
+    data.manualFinal = !!raw.manualFinal;
+    return data;
+  }
+
+  function writeIntentForm(raw) {
+    const data = normalizeIntentData(raw);
+    STAGES.forEach(stage => {
+      const row = data.stages[stage.key];
+      const date = document.getElementById(`intent_${stage.key}_date`);
+      const text = document.getElementById(`intent_${stage.key}_text`);
+      const savings = document.getElementById(`intent_${stage.key}_savings`);
+      const note = document.getElementById(`intent_${stage.key}_note`);
+      if (date) date.value = row.date || "";
+      if (text) text.value = row.intention || "";
+      if (savings) savings.value = row.savings || "";
+      if (note) note.value = row.note || "";
+    });
+    const summary = document.getElementById("intentChangeSummary");
+    if (summary) {
+      summary.value = data.changeSummary || "";
+      summary.dataset.manual = data.manualChangeSummary ? "1" : "0";
+    }
+    const finalText = document.getElementById("intent_final_text");
+    if (finalText) finalText.dataset.manual = data.manualFinal ? "1" : "0";
+    updateIntentSummary();
+  }
+
+  function saveIntentProgress() {
+    if (!document.getElementById("intentProgressCard")) return;
+    const data = readIntentForm();
+    if (typeof app !== "undefined") app.intentProgress = data;
+    try {
+      localStorage.setItem(intentStorageKey(), JSON.stringify(data));
+    } catch (error) {
+      console.warn("意向推移データを保存できませんでした。", error);
+    }
+    updateIntentSummary();
+  }
+
+  function restoreIntentProgress(force = false) {
+    if (!document.getElementById("intentProgressCard")) return;
+    const contextKey = intentContextKey();
+    if (!force && lastIntentContextKey === contextKey) return;
+    let data = null;
+    if (
+      typeof app !== "undefined"
+      && app.intentProgress
+      && app.intentProgress.contextKey === contextKey
+    ) {
+      data = app.intentProgress;
+    }
+    try {
+      const stored = localStorage.getItem(STORAGE_PREFIX + contextKey);
+      if (stored) data = JSON.parse(stored);
+    } catch (error) {
+      console.warn("意向推移データを読み込めませんでした。", error);
+    }
+    writeIntentForm(data || defaultIntentData());
+    lastIntentContextKey = contextKey;
+  }
+
+  function validateIntentProgress(showMessage = false) {
+    autoCaptureIntent("final");
+    autoCompleteChangeSummary();
+    const requiredIds = [];
+    STAGES.forEach(stage => {
+      requiredIds.push(
+        `intent_${stage.key}_date`,
+        `intent_${stage.key}_text`,
+        `intent_${stage.key}_savings`
+      );
+    });
+    let firstMissing = null;
+    requiredIds.forEach(id => {
+      const node = document.getElementById(id);
+      const missing = !node || !String(node.value || "").trim();
+      if (node) node.classList.toggle("intent-progress-error", missing);
+      if (missing && !firstMissing) firstMissing = node;
+    });
+    if (firstMissing && showMessage) {
+      if (typeof showPage === "function") showPage("recordPage");
+      openIntentModal();
+      alert("意向確認書に必要な項目だけ確認してください。未入力の項目を赤枠で表示しています。");
+      firstMissing.focus();
+    }
+    updateIntentSummary();
+    return !firstMissing;
+  }
+
+  function buildIntentCard() {
+    const recordPage = document.getElementById("recordPage");
+    if (!recordPage || document.getElementById("intentProgressCard")) return;
+    const card = document.createElement("div");
+    card.id = "intentProgressCard";
+    card.className = "card intent-progress-card";
+    card.innerHTML = `
+      <div class="intent-progress-head">
+        <div>
+          <h3 style="margin:0 0 4px;color:var(--green-dark)">意向の推移</h3>
+          <p style="font-size:12px;color:var(--text-mid);margin:0">質問フローから自動記録し、意向確認書に推定・当初・最終を表示します。</p>
+        </div>
+        <span id="intentProgressStatus" class="intent-progress-status">● 未確認</span>
+      </div>
+      <div id="intentProgressSummary" class="intent-progress-summary"></div>
+      <div class="intent-savings-quick">
+        <span class="intent-savings-quick-label">貯蓄部分についての現在のお考え</span>
+        <button type="button" class="intent-savings-choice" data-savings="ある方が良い" onclick="intentNavSetSavings('ある方が良い')">ある方が良い</button>
+        <button type="button" class="intent-savings-choice" data-savings="なくても良い" onclick="intentNavSetSavings('なくても良い')">なくても良い</button>
+        <button type="button" class="btn btn-ghost btn-sm" onclick="intentNavOpen()">内容を確認・修正</button>
+      </div>
+
+      <div id="intentProgressModal" class="intent-modal" role="dialog" aria-modal="true" aria-labelledby="intentProgressModalTitle">
+        <div class="intent-modal-panel">
+          <div class="intent-modal-head">
+            <div>
+              <h3 id="intentProgressModalTitle" style="margin:0;color:var(--green-dark)">意向の推移を確認・修正</h3>
+              <p style="font-size:11px;color:var(--text-mid);margin:3px 0 0">通常は自動記録されます。変更がある場合だけ修正してください。</p>
+            </div>
+            <button type="button" class="intent-modal-close" aria-label="閉じる" onclick="intentNavClose()">×</button>
+          </div>
+          <div class="intent-progress-table-wrap">
+            <table class="intent-progress-table">
+              <thead>
+                <tr>
+                  <th>段階</th>
+                  <th style="width:142px">面談日 <span class="intent-required">＊</span></th>
+                  <th>ご希望の保障分野・目的 <span class="intent-required">＊</span></th>
+                  <th style="width:162px">貯蓄部分の意向 <span class="intent-required">＊</span></th>
+                  <th>補足（任意）</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${STAGES.map(stage => `
+                  <tr>
+                    <td class="intent-stage">${stage.label}</td>
+                    <td><input type="date" id="intent_${stage.key}_date" aria-label="${stage.label}の面談日"></td>
+                    <td><textarea id="intent_${stage.key}_text" aria-label="${stage.label}の保障分野・目的" placeholder="例：病気・ケガの保障、がんなどの特定疾病への備え"></textarea></td>
+                    <td>
+                      <select id="intent_${stage.key}_savings" aria-label="${stage.label}の貯蓄部分の意向">
+                        <option value="">選択してください</option>
+                        <option value="ある方が良い">ある方が良い</option>
+                        <option value="なくても良い">なくても良い</option>
+                      </select>
+                    </td>
+                    <td><textarea id="intent_${stage.key}_note" aria-label="${stage.label}の補足" placeholder="必要な場合のみ追記"></textarea></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+          <label for="intentChangeSummary" style="display:block;margin-top:12px;font-weight:800;color:var(--green-dark)">
+            意向の変化内容（推定 → 当初 → 最終） <span style="font-size:11px;font-weight:600;color:var(--text-mid)">自動作成・任意追記</span>
+          </label>
+          <textarea id="intentChangeSummary" data-manual="0" placeholder="推定・当初・最終の内容から自動作成されます。必要な場合のみ追記してください。"></textarea>
+          <div style="font-size:11px;color:var(--text-mid);margin-top:5px">
+            詳しい変更理由や判断内容は「意向確認文」にまとめるため、この欄の手入力は必須ではありません。
+          </div>
+          <div class="intent-progress-actions">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="intentNavCopyCurrentNeeds()">提案結果を最終意向へ反映</button>
+            <button type="button" class="btn btn-accent btn-sm" onclick="intentNavSaveAndClose()">保存して閉じる</button>
+          </div>
+        </div>
+      </div>
+    `;
+    const anchor = recordPage.querySelector(".section-sub");
+    if (anchor && anchor.nextSibling) anchor.parentNode.insertBefore(card, anchor.nextSibling);
+    else recordPage.appendChild(card);
+    card.querySelectorAll("input,select,textarea").forEach(node => {
+      node.addEventListener("input", () => {
+        if (node.id === "intent_final_text") node.dataset.manual = "1";
+        if (node.id === "intentChangeSummary") node.dataset.manual = "1";
+        else autoCompleteChangeSummary();
+        node.classList.remove("intent-progress-error");
+        saveIntentProgress();
+      });
+      node.addEventListener("change", () => {
+        if (node.id !== "intentChangeSummary") autoCompleteChangeSummary();
+        node.classList.remove("intent-progress-error");
+        saveIntentProgress();
+      });
+    });
+    const modal = document.getElementById("intentProgressModal");
+    if (modal) {
+      modal.addEventListener("click", event => {
+        if (event.target === modal) closeIntentModal();
+      });
+    }
+    restoreIntentProgress(true);
+    autoCaptureIntent("estimated");
+    updateIntentSummary();
+  }
+
+  function currentNeedsText() {
+    if (typeof app === "undefined" || !Array.isArray(app.needs)) return "";
+    return app.needs
+      .map(need => (typeof needLabels !== "undefined" && needLabels[need]) || need)
+      .filter(Boolean)
+      .join("、");
+  }
+
+  function currentFinalNeedsText() {
+    if (typeof app === "undefined" || !Array.isArray(app.needs)) return "";
+    const excludedStatuses = new Set(["今回は見送り", "未提案"]);
+    const activeNeeds = app.needs.filter(need => {
+      const recommendation = app.recommendations && app.recommendations[need];
+      return !recommendation || !excludedStatuses.has(recommendation.status || "");
+    });
+    if (activeNeeds.length) {
+      return activeNeeds
+        .map(need => (typeof needLabels !== "undefined" && needLabels[need]) || need)
+        .filter(Boolean)
+        .join("、");
+    }
+    const hasRecordedResult = app.needs.some(need => {
+      const recommendation = app.recommendations && app.recommendations[need];
+      return recommendation && recommendation.status && recommendation.status !== "未提案";
+    });
+    return hasRecordedResult ? "加入意向なし（今回は見送り）" : currentNeedsText();
+  }
+
+  function currentMeetingDate() {
+    return (typeof app !== "undefined" && app._interviewDate)
+      || (document.getElementById("interviewDate") || {}).value
+      || "";
+  }
+
+  function autoCaptureIntent(stageKey) {
+    const needsText = stageKey === "final" ? currentFinalNeedsText() : currentNeedsText();
+    const dateValue = currentMeetingDate();
+    const stage = document.getElementById(`intent_${stageKey}_text`);
+    const date = document.getElementById(`intent_${stageKey}_date`);
+    if (date && !date.value && dateValue) date.value = dateValue;
+    if (stage && !stage.value && needsText) stage.value = needsText;
+    if (stageKey === "final" && stage && needsText && stage.dataset.manual !== "1") {
+      stage.value = needsText;
+    }
+    autoCompleteChangeSummary();
+    saveIntentProgress();
+  }
+
+  function buildAutoChangeSummary() {
+    const rows = STAGES.map(stage => ({
+      label: stage.label,
+      intention: String((document.getElementById(`intent_${stage.key}_text`) || {}).value || "").trim(),
+      savings: String((document.getElementById(`intent_${stage.key}_savings`) || {}).value || "").trim()
+    }));
+    if (rows.some(row => !row.intention || !row.savings)) return "";
+
+    const changes = [];
+    for (let index = 1; index < rows.length; index += 1) {
+      const before = rows[index - 1];
+      const after = rows[index];
+      const transition = `${before.label}から${after.label}`;
+      const details = [];
+      if (before.intention !== after.intention) {
+        details.push(`保障分野・目的が「${before.intention}」から「${after.intention}」へ変更`);
+      }
+      if (before.savings !== after.savings) {
+        details.push(`貯蓄部分の意向が「${before.savings}」から「${after.savings}」へ変更`);
+      }
+      if (details.length) changes.push(`${transition}にかけて、${details.join("、")}。`);
+    }
+    if (!changes.length) return AUTO_NO_CHANGE_TEXT;
+    return `${changes.join("")}${AUTO_CHANGE_DETAIL_TEXT}`;
+  }
+
+  function autoCompleteChangeSummary(force = false) {
+    const summary = document.getElementById("intentChangeSummary");
+    if (!summary) return;
+    if (!force && summary.dataset.manual === "1") return;
+    const generated = buildAutoChangeSummary();
+    if (!generated) return;
+    summary.value = generated;
+    summary.dataset.manual = "0";
+  }
+
+  function intentStageComplete(stageKey) {
+    return ["date", "text", "savings"].every(field => {
+      const node = document.getElementById(`intent_${stageKey}_${field}`);
+      return !!(node && String(node.value || "").trim());
+    });
+  }
+
+  function updateIntentSummary() {
+    const container = document.getElementById("intentProgressSummary");
+    if (!container) return;
+    container.innerHTML = STAGES.map(stage => {
+      const complete = intentStageComplete(stage.key);
+      const date = (document.getElementById(`intent_${stage.key}_date`) || {}).value || "日付未設定";
+      const text = (document.getElementById(`intent_${stage.key}_text`) || {}).value || "自動記録待ち";
+      return `<div class="intent-stage-chip">
+        <strong>${complete ? "✓" : "○"} ${stage.label}</strong>
+        <span>${intentEsc(date)}｜${intentEsc(text)}</span>
+      </div>`;
+    }).join("");
+    const complete = STAGES.every(stage => intentStageComplete(stage.key));
+    const status = document.getElementById("intentProgressStatus");
+    if (status) {
+      status.textContent = complete ? "✓ 入力済み" : "● 確認項目あり";
+      status.classList.toggle("complete", complete);
+    }
+    const finalSavings = (document.getElementById("intent_final_savings") || {}).value || "";
+    document.querySelectorAll(".intent-savings-choice").forEach(button => {
+      button.classList.toggle("active", button.dataset.savings === finalSavings);
+    });
+  }
+
+  function openIntentModal() {
+    const modal = document.getElementById("intentProgressModal");
+    if (!modal) return;
+    modal.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeIntentModal() {
+    const modal = document.getElementById("intentProgressModal");
+    if (modal) modal.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  window.intentNavOpen = function() {
+    autoCaptureIntent("initial");
+    autoCaptureIntent("final");
+    openIntentModal();
+  };
+
+  window.intentNavClose = function() {
+    saveIntentProgress();
+    closeIntentModal();
+  };
+
+  window.intentNavSaveAndClose = function() {
+    autoCompleteChangeSummary();
+    saveIntentProgress();
+    if (!validateIntentProgress(false)) {
+      validateIntentProgress(true);
+      return false;
+    }
+    closeIntentModal();
+    if (typeof setStatus === "function") setStatus("✓ 意向の推移を保存しました。");
+    return true;
+  };
+
+  window.intentNavSetSavings = function(value) {
+    STAGES.forEach(stage => {
+      const node = document.getElementById(`intent_${stage.key}_savings`);
+      if (!node) return;
+      if (!node.value || stage.key === "final") node.value = value;
+      node.classList.remove("intent-progress-error");
+    });
+    autoCompleteChangeSummary();
+    saveIntentProgress();
+  };
+
+  window.intentNavCopyCurrentNeeds = function() {
+    const labels = currentFinalNeedsText();
+    const target = document.getElementById("intent_final_text");
+    if (!target) return;
+    if (!labels) {
+      alert("質問フローで保障分野・目的を選択してから反映してください。");
+      return;
+    }
+    target.value = labels;
+    target.dataset.manual = "0";
+    target.classList.remove("intent-progress-error");
+    autoCompleteChangeSummary();
+    saveIntentProgress();
+  };
+
+  window.intentNavValidate = function() {
+    const valid = validateIntentProgress(true);
+    if (valid) {
+      saveIntentProgress();
+      alert("意向の推移の必須項目はすべて入力されています。変化内容は自動作成されます。");
+    }
+    return valid;
+  };
+
+  function formatIntentDate(value) {
+    const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${Number(match[1])}年${Number(match[2])}月${Number(match[3])}日` : "未記入";
+  }
+
+  function injectIntentPrintSection() {
+    const area = document.getElementById("printArea");
+    if (!area) return;
+    const previous = area.querySelector(".intent-progress-print");
+    if (previous) previous.remove();
+    const data = readIntentForm();
+    const section = document.createElement("div");
+    section.className = "print-section print-section-flow intent-progress-print";
+    section.innerHTML = `
+      <h3>意向の推移（推定・当初・最終）</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:12%">段階</th>
+            <th style="width:15%">面談日</th>
+            <th style="width:29%">ご希望の保障分野・目的</th>
+            <th style="width:16%">貯蓄部分</th>
+            <th style="width:28%">補足（任意）</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${STAGES.map(stage => {
+            const row = data.stages[stage.key];
+            return `<tr>
+              <th>${stage.label}</th>
+              <td>${intentEsc(formatIntentDate(row.date))}</td>
+              <td>${intentEsc(row.intention || "未記入").replace(/\n/g, "<br>")}</td>
+              <td>${intentEsc(row.savings || "未記入")}</td>
+              <td>${intentEsc(row.note || "－").replace(/\n/g, "<br>")}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+      <div style="border:1px solid #ccc;border-top:0;padding:8px 10px;font-size:11px;line-height:1.6">
+        <b>意向の変化内容：</b>
+        ${intentEsc(data.changeSummary || buildAutoChangeSummary() || "変更なし").replace(/\n/g, "<br>")}
+      </div>
+    `;
+    const signature = area.querySelector(".print-signature-section");
+    if (signature) area.insertBefore(section, signature);
+    else area.appendChild(section);
+  }
+
+  function installIntentHooks() {
+    if (typeof collectState === "function") {
+      const originalCollectState = collectState;
+      window.collectState = function(...args) {
+        const state = originalCollectState.apply(this, args);
+        state.intentProgress = readIntentForm();
+        return state;
+      };
+    }
+    if (typeof saveInterview === "function") {
+      const originalSaveInterview = saveInterview;
+      window.saveInterview = function(...args) {
+        saveIntentProgress();
+        return originalSaveInterview.apply(this, args);
+      };
+    }
+    if (typeof loadInterview === "function") {
+      const originalLoadInterview = loadInterview;
+      window.loadInterview = function(...args) {
+        const result = originalLoadInterview.apply(this, args);
+        setTimeout(() => restoreIntentProgress(true), 0);
+        return result;
+      };
+    }
+    if (typeof generateDocument === "function") {
+      const originalGenerateDocument = generateDocument;
+      window.generateDocument = function(...args) {
+        if (!validateIntentProgress(true)) return false;
+        saveIntentProgress();
+        const result = originalGenerateDocument.apply(this, args);
+        injectIntentPrintSection();
+        return result;
+      };
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.title = "意向確認ナビ - 修正版";
+    buildIntentCard();
+    installIntentHooks();
+    const observer = new MutationObserver(() => {
+      const recordPage = document.getElementById("recordPage");
+      if (recordPage && recordPage.classList.contains("active")) {
+        restoreIntentProgress();
+        autoCaptureIntent("initial");
+        autoCaptureIntent("final");
+      }
+      const printPage = document.getElementById("printPage");
+      if (printPage && printPage.classList.contains("active") && document.getElementById("printArea")) {
+        injectIntentPrintSection();
+      }
+    });
+    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["class"] });
+    document.addEventListener("change", () => {
+      setTimeout(() => {
+        autoCaptureIntent("estimated");
+        autoCaptureIntent("final");
+      }, 0);
+    });
+    document.addEventListener("click", () => {
+      setTimeout(() => autoCaptureIntent("estimated"), 0);
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closeIntentModal();
+    });
+  });
+})();
+</script>
 
 </body></html>
