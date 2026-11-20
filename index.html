@@ -2,7 +2,7 @@
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較・意向確認ナビ v40.48｜面談開始ガード完全版</title>
+<title>比較・意向確認ナビ v40.56｜被保険者入力かんたん版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -126,6 +126,9 @@ body {
   flex: 1;
   padding: 28px;
   max-width: 840px;
+  min-width: 0;
+  height: auto;
+  overflow: visible;
 }
 
 /* ── PAGE ── */
@@ -1284,6 +1287,11 @@ body.app-locked .app-body {
           <div class="field"><label>法人名 <span style="color:#e07b4a">*</span></label><input id="corporateName" placeholder="例：株式会社サンプル" autocomplete="organization" autocapitalize="off" enterkeyhint="next"></div>
           <div class="field"><label>代表者名</label><input id="representativeName" placeholder="例：山田 太郎" autocomplete="name" autocapitalize="off" enterkeyhint="done"></div>
         </div>
+        <div class="field" style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:10px">
+          <label>被保険者（保障の対象となる方）</label>
+          <div id="insuredLegacyNotice" class="hidden" style="font-size:12px;color:var(--text-mid);margin:6px 0">被保険者を確認し、下のどちらかを選んでください。</div>
+          <div id="insuredList"></div>
+        </div>
         <div class="btns">
           <button class="btn btn-primary" onclick="saveCustomer()">💾 保存</button>
           <button class="btn btn-danger btn-sm" onclick="deleteCurrentCustomer()">🗑 選択中の顧客を削除</button>
@@ -1451,7 +1459,8 @@ body.app-locked .app-body {
         <button class="chip-btn" onclick="insertChip('next_family')">👨‍👩‍👧 家族相談</button>
         <button class="chip-btn" onclick="insertChip('declined')">⏸ 見送り</button>
       </div>
-      <textarea id="intentMemo" placeholder="例：がん保険について既存契約では上皮内がんが対象外で不安。ひまわりとソニー生命を比較して保険料・免除条件を確認。一時金重視でひまわりを選んだ。" style="width: 100%; box-sizing: border-box; min-height: 240px; height: 240px; overflow-y: auto; resize: vertical; display: block;" oninput="clearTimeout(this._t);this._t=setTimeout(autoSave,600)"></textarea>
+      <div class="field"><label>面談に参加した方（契約者・被保険者とは別）</label><input id="participants" placeholder="例：ご本人、配偶者、長男（同席）" oninput="clearTimeout(this._t);this._t=setTimeout(autoSave,600)"></div>
+      <textarea id="intentMemo" placeholder="面談で聞いた内容をメモできます。比較カードから文章素材を追加することもできます。" style="width: 100%; box-sizing: border-box; min-height: 240px; height: 240px; overflow-y: auto; resize: vertical; display: block;" oninput="clearTimeout(this._t);this._t=setTimeout(autoSave,600)"></textarea>
     </div>
 
     <!-- ③ 自動作成ボタン（メイン） -->
@@ -1510,7 +1519,20 @@ body.app-locked .app-body {
         </div>
       </details>
 
-      <textarea id="intentPolished" placeholder="「比較・選択結果を自動作成」を押すと、お客様が比較して判断した内容を中心に意向確認書向けの文章が生成されます。生成後に直接編集することもできます。" style="width: 100%; box-sizing: border-box; display: block; min-height: 200px; height: 200px; overflow-y: auto; resize: vertical;" oninput="updateLineCharCount()"></textarea>
+      <textarea id="intentPolished" placeholder="「比較・選択結果を自動作成」を押すと文章案が作成されます。内容を確認して編集してください。" style="width: 100%; box-sizing: border-box; display: block; min-height: 200px; height: 200px; overflow-y: auto; resize: vertical;" oninput="onIntentPolishedInput()"></textarea>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:4px">
+        <span id="intentSaveState" style="font-size:11px;color:var(--text-light)">編集内容は自動保存されます</span>
+        <button id="intentUndoBtn" type="button" class="btn btn-ghost btn-sm" onclick="undoIntentPolished()" disabled>↩ 直前の文章に戻す</button>
+      </div>
+      <div id="intentReviewNotice" class="hidden" style="margin-top:8px;padding:8px 10px;border:1px solid #d97706;border-radius:8px;background:#fffbeb;color:#92400e;font-size:12px">⚠ 商品・比較内容・回答・被保険者のいずれかが変更されました。文章はそのまま保持しています。内容に合っているか見直してください。<button type="button" class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="markIntentBasis(); autoSave()">見直し済みにする</button></div>
+      <div id="intentProposalBox" class="hidden" style="margin-top:10px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2)">
+        <b style="font-size:12px">新しい文章案（現在の文章は保持されています）</b>
+        <textarea id="intentProposal" readonly style="width:100%;box-sizing:border-box;min-height:120px;margin-top:6px"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:6px">
+          <button class="btn btn-ghost btn-sm" onclick="discardIntentProposal()">新案を破棄</button>
+          <button class="btn btn-primary btn-sm" onclick="acceptIntentProposal()">この新案に置き換える</button>
+        </div>
+      </div>
       <div id="lineCharWarning" style="font-size:11px;margin-top:4px;display:none"></div>
 
       <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end">
@@ -1868,7 +1890,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.48";
+const APP_VERSION = "40.56";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -2378,7 +2400,9 @@ function clearSignatureCanvases() {
 }
 
 function clearSessionDomFields() {
-  ["intentMemo", "intentPolished", "importantMemo", "importantPolished"].forEach(id => { if (el(id)) el(id).value = ""; });
+  ["intentMemo", "intentPolished", "importantMemo", "importantPolished", "participants"].forEach(id => { if (el(id)) el(id).value = ""; });
+  restoreIntentProposal({});
+  if (typeof resetIntentProgressForm === "function") resetIntentProgressForm();
   ["recommendations", "downloadArea"].forEach(id => { if (el(id)) el(id).innerHTML = ""; });
   const pa = el("printArea");
   if (pa) pa.innerHTML = '<h2>意向確認書</h2><p>まだ生成されていません。「意向確認書を生成」ボタンを押してください。</p>';
@@ -2402,6 +2426,7 @@ function deepClearAppSession(options = {}) {
   app.elderlyCompanion = {};
   restoreElderlyCompanionUI({});
   app._printHtmlEdited = "";
+  app.intentProgress = null;
   app._forceRegenerateDocument = false;
   app._closingType = "";
   app._interviewDate = "";
@@ -2419,6 +2444,10 @@ function sanitizeModeData(kind) {
   if (!app.answers || typeof app.answers !== "object") app.answers = {};
   if (normalized === "corporate") {
     app.answers.contractType = "法人";
+    if (!Array.isArray(app.answers.hojinConcerns)) {
+      const known = ["keiei","jigyou","kariire","taishokukin","fukuri","souzoku","shokei"];
+      app.answers.hojinConcerns = known.includes(app.answers.hojinConcerns) ? [app.answers.hojinConcerns] : [];
+    }
     delete app.answers.mainConcerns;
     ["cancerPriority","cancerEpithelial","medicalPriority","deathPurpose","deathFuneralNeed","deathPeriod","incomeAmount","incomePeriod","assetPurpose","investmentExperience","riskTolerance","retirementConcern","carePriority"].forEach(k => delete app.answers[k]);
   } else {
@@ -2473,7 +2502,7 @@ let app = {
   _sessionStarted: false
 };
 
-const needLabels = {
+const needLabels = _withInsuredKeys({
   cancer:         "がん保険",
   medical:        "医療保険",
   death:          "死亡保障",
@@ -2485,7 +2514,7 @@ const needLabels = {
   hojin_death:    "法人事業保障",
   hojin_retire:   "役員退職金準備",
   hojin_welfare:  "福利厚生・事業承継"
-};
+});
 
 const questionTemplates = {
   start: {
@@ -2541,7 +2570,7 @@ const questionTemplates = {
     id:"hojinRetire",
     title:"【法人ヒアリング④】役員退職金の準備状況はいかがですか？",
     type:"single",
-    options:["未検討","検討中","準備済みだが不足"]
+    options:["未検討","検討中","準備済みだが不足","準備済み・追加準備は不要","今回は確認しない"]
   },
   hojinSuccessor: {
     id:"hojinSuccessor",
@@ -2768,6 +2797,11 @@ function showPage(id) {
     id = "customerPage";
     setStatus("顧客を選択してから質問フローを開始してください。", "warn");
   }
+  // ページ遷移時は確認モーダルを閉じ、背景のスクロールロックも解除する。
+  const intentModal = el("intentProgressModal");
+  if (intentModal) intentModal.classList.remove("open");
+  document.body.style.overflow = "";
+  document.documentElement.style.overflow = "";
   document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
   document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
   el(id).classList.add("active");
@@ -3213,12 +3247,113 @@ function customerKindLabel(c) {
   return getCustomerKind(c) === "corporate" ? "🏢 法人" : "👤 個人";
 }
 
+let insuredDrafts = [];
+let insuredEntryMode = "same";
+let insuredModeCache = {};
+let insuredFormKind = "individual";
+
+function newInsuredDraft() {
+  return {id:"i_"+Date.now()+"_"+Math.random().toString(36).slice(2,7),name:"",birth:"",gender:"未選択",confirmed:true};
+}
+function isLinkedInsured(x, kind = val("customerKind")) {
+  return kind === "corporate" ? !!x?.sameAsRepresentative : !!x?.sameAsContractor;
+}
+function syncLinkedInsuredDraft() {
+  if (insuredEntryMode !== "same") return;
+  const corporate = val("customerKind") === "corporate";
+  let linked = insuredDrafts.find(x => isLinkedInsured(x));
+  if (!linked) { linked = newInsuredDraft(); insuredDrafts.unshift(linked); }
+  linked.name = (corporate ? val("representativeName") : val("customerName")).trim();
+  linked.sameAsContractor = !corporate;
+  linked.sameAsRepresentative = corporate;
+  if (corporate) { linked.title = linked.title || "代表者"; delete linked.relation; }
+  else { linked.relation = "本人"; linked.birth = val("birth"); linked.gender = val("gender") || "未選択"; delete linked.title; }
+  const summary = el("insuredSameSummary");
+  if (summary) summary.textContent = linked.name || (corporate ? "上の代表者名を入力してください。" : "上のお名前を入力してください。");
+}
+function restoreInsuredEntry(customer) {
+  insuredModeCache = {};
+  insuredFormKind = customer ? getCustomerKind(customer) : (val("customerKind") || "individual");
+  insuredDrafts = Array.isArray(customer?.insureds) ? customer.insureds.map(x=>({...x})) : [];
+  if (!customer) insuredEntryMode = "same";
+  else if (["same","different","unconfirmed"].includes(customer.insuredEntryMode)) insuredEntryMode = customer.insuredEntryMode;
+  else if (insuredDrafts.some(x=>isLinkedInsured(x, insuredFormKind))) insuredEntryMode = "same";
+  else insuredEntryMode = insuredDrafts.length ? "different" : "unconfirmed";
+  renderInsuredDrafts();
+}
+function setInsuredEntryMode(mode) {
+  if (!["same","different"].includes(mode)) return;
+  if (mode !== insuredEntryMode) {
+    insuredModeCache[insuredEntryMode] = insuredDrafts.map(x=>({...x}));
+    insuredDrafts = (insuredModeCache[mode] || []).map(x=>({...x}));
+    insuredEntryMode = mode;
+  }
+  if (mode === "different" && !insuredDrafts.length) insuredDrafts.push(newInsuredDraft());
+  syncLinkedInsuredDraft();
+  renderInsuredDrafts();
+}
+function renderInsuredDrafts() {
+  const host = el("insuredList");
+  if (!host) return;
+  const corporate = val("customerKind") === "corporate";
+  syncLinkedInsuredDraft();
+  const choice = (mode, text) => `<label style="display:flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid ${insuredEntryMode===mode?'var(--green)':'var(--border)'};border-radius:8px;background:${insuredEntryMode===mode?'var(--green-light)':'#fff'};font-size:13px;font-weight:600;margin:0;cursor:pointer"><input type="radio" name="insuredEntryMode" value="${mode}" ${insuredEntryMode===mode?'checked':''} onchange="setInsuredEntryMode(this.value)" style="width:16px;height:16px;padding:0;margin:0;flex-shrink:0">${text}</label>`;
+  const forms = insuredDrafts.map((x,i) => {
+    const linked = insuredEntryMode === "same" && isLinkedInsured(x);
+    if (linked) {
+      return `<div style="padding:10px 2px;font-size:12px;line-height:1.7"><b>${corporate?'代表者：':'被保険者：'}<span id="insuredSameSummary">${esc(x.name || (corporate?'上の代表者名を入力してください。':'上のお名前を入力してください。'))}</span></b>${corporate?'':'<br>お名前・生年月日・性別は契約者情報を使います。'}</div>${corporate?`<div class="grid2"><div class="field"><label>代表者の生年月日（任意）</label><input type="date" value="${esc(x.birth||'')}" onchange="updateInsuredDraft(${i},'birth',this.value)"></div><div class="field"><label>代表者の性別（任意）</label>${insuredGenderSelect(x,i)}</div></div>`:''}`;
+    }
+    return `<div style="background:#fff;border:1px solid var(--border-light);border-radius:8px;padding:10px;margin:8px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:12px">${insuredDrafts.length>1?'被保険者 '+(i+1):'被保険者情報'}</b>${corporate?`<button type="button" class="btn btn-ghost btn-sm" onclick="copyRepresentativeToInsured(${i})">代表者を被保険者にする</button>`:''}${insuredDrafts.length>1?`<button type="button" class="btn btn-ghost btn-sm" onclick="removeInsuredDraft(${i})">削除</button>`:''}</div>
+      <div class="grid2" style="margin-top:8px"><div class="field"><label>氏名</label><input value="${esc(x.name||'')}" oninput="updateInsuredDraft(${i},'name',this.value)" placeholder="被保険者のお名前"></div><div class="field"><label>${corporate?'役職（任意）':'契約者から見た続柄（任意）'}</label><input value="${esc(corporate?(x.title||''):(x.relation||''))}" oninput="updateInsuredDraft(${i},'${corporate?'title':'relation'}',this.value)" placeholder="${corporate?'例：取締役・従業員':'例：配偶者・子'}"></div></div>
+      <div class="grid2"><div class="field"><label>生年月日（任意）</label><input type="date" value="${esc(x.birth||'')}" onchange="updateInsuredDraft(${i},'birth',this.value)"></div><div class="field"><label>性別（任意）</label>${insuredGenderSelect(x,i)}</div></div>
+    </div>`;
+  }).join("");
+  host.innerHTML = `<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:8px">${choice('same',corporate?'代表者':'契約者と同じ')}${choice('different',corporate?'別の役員・従業員':'契約者と異なる')}</div>${forms}${insuredEntryMode==='unconfirmed'?'<div style="font-size:12px;color:var(--text-light);margin-top:8px">被保険者は未確認です。</div>':`<button type="button" class="btn btn-ghost btn-sm" onclick="addInsuredDraft()" style="margin-top:4px">＋ もう1人追加</button>`}`;
+  el("insuredLegacyNotice")?.classList.toggle("hidden", insuredEntryMode !== "unconfirmed");
+}
+function insuredGenderSelect(x,i) {
+  return `<select onchange="updateInsuredDraft(${i},'gender',this.value)">${['未選択','男性','女性','回答しない'].map(v=>`<option ${String(x.gender||'未選択')===v?'selected':''}>${v}</option>`).join('')}</select>`;
+}
+function addInsuredDraft() {
+  if (insuredEntryMode === "unconfirmed") insuredEntryMode = "different";
+  syncLinkedInsuredDraft();
+  insuredDrafts.push(newInsuredDraft());
+  renderInsuredDrafts();
+}
+function removeInsuredDraft(i) { insuredDrafts.splice(i,1); renderInsuredDrafts(); }
+function updateInsuredDraft(i,k,v) { if(insuredDrafts[i]) insuredDrafts[i][k]=v; }
+function copyRepresentativeToInsured(i) {
+  const d = insuredDrafts[i]; if (!d) return;
+  const rep = (val('representativeName') || '').trim();
+  if (!rep) { setStatus("先に代表者名を入力してください。", "warn"); return; }
+  d.name = rep; d.title = d.title || '代表者';
+  renderInsuredDrafts();
+}
+function copyContractorToInsured(i) {
+  const c=insuredDrafts[i]; if(!c) return;
+  insuredEntryMode = "same";
+  if(val('customerKind')==='corporate') { c.name=val('representativeName')||''; c.title=c.title||'代表者'; c.sameAsRepresentative=true; c.sameAsContractor=false; }
+  else { c.name=val('customerName')||''; c.relation='本人'; c.birth=val('birth')||''; c.gender=val('gender')||'未選択'; c.sameAsContractor=true; c.sameAsRepresentative=false; }
+  renderInsuredDrafts();
+}
+function soleInsuredForRecommendation(r) {
+  const list = (app.customer?.insureds || []).filter(x=>x.confirmed!==false && x.name);
+  if (list.length === 1 && !r.insuredId) { r.insuredId = list[0].id; r.insuredName = list[0].name; }
+}
+
 function onCustomerKindChange(kind) {
   const isCorporate = kind === "corporate";
   const individual = el("individualCustomerFields");
   const corporate = el("corporateCustomerFields");
   if (individual) individual.style.display = isCorporate ? "none" : "";
   if (corporate) corporate.style.display = isCorporate ? "" : "none";
+  if (insuredFormKind !== kind) {
+    insuredFormKind = kind; insuredModeCache = {};
+    insuredDrafts = insuredDrafts.filter(x=>!x.sameAsContractor && !x.sameAsRepresentative);
+    insuredEntryMode = insuredDrafts.some(x=>x.name) ? "different" : "same";
+  }
+  renderInsuredDrafts();
 }
 
 function restoreCustomerKindUI(kind) {
@@ -3341,12 +3476,12 @@ function rowClass(dateStr, custOrId) {
       const hist = getInterviewHistory(_cid);
       const latest = hist[0];
       if (latest) {
-        const carriedNeeds = new Set((latest._carriedContracts || []).map(cc => cc.need));
+        const carriedNeeds = new Set((latest._carriedContracts || []).map(cc => insuredNeedIdentity(cc.need, cc)));
         const recs = Object.entries(latest.recommendations || {});
         // 高齢×初回面談の成約は contracted 色にしない
         const hasValidContract = recs.some(([need, r]) =>
           ["成約","申込意向あり・次回手続き"].includes(r.status) &&
-          !carriedNeeds.has(need) &&
+          !carriedNeeds.has(insuredNeedIdentity(need, r)) &&
           !isElderlyFirstSession(latest, _c)
         );
         if (hasValidContract) return "contracted";
@@ -3382,14 +3517,15 @@ function renderDashboard() {
         const recs = s.recommendations || {};
         // _carriedContracts も含めて成約商品をカウント（商品単位で重複排除）
         (s._carriedContracts || []).forEach(cc => {
-          contractedProducts.add((cc.product || cc.need).split("（")[0].trim());
+          contractedProducts.add(JSON.stringify([(cc.product || cc.need).split("（")[0].trim(), cc.insuredId || insuredIdOfKey(cc.need)]));
         });
         Object.entries(recs).forEach(([need, r]) => {
           // 高齢×初回面談の成約は高齢募集ルール上カウントしない（共通関数で判定）
           if (contractedStatuses.includes(r.status) && !isInvalidElderlyFirstContract(s, c, r.status)) {
-            if (!seenNeeds.has(need)) {
-              seenNeeds.add(need);
-              contractedProducts.add((r.contract || r.product || need).split("（")[0].trim());
+            const identity = insuredNeedIdentity(need, r);
+            if (!seenNeeds.has(identity)) {
+              seenNeeds.add(identity);
+              contractedProducts.add(JSON.stringify([(r.contract || r.product || need).split("（")[0].trim(), r.insuredId || insuredIdOfKey(need)]));
             }
           }
           // 最新履歴のみで次回提案を判定
@@ -3465,9 +3601,9 @@ function renderCustomerList() {
           if (Object.values(s.recommendations||{}).every(r =>
             isInvalidElderlyFirstContract(s, c, r.status) || r.status !== "成約"
           ) && !(s._carriedContracts||[]).length) return false;
-          const carriedNeeds = new Set((s._carriedContracts || []).map(cc => cc.need));
+          const carriedNeeds = new Set((s._carriedContracts || []).map(cc => insuredNeedIdentity(cc.need, cc)));
           return Object.entries(s.recommendations||{}).some(([need, r]) =>
-            r.status === "成約" && !carriedNeeds.has(need)
+            r.status === "成約" && !carriedNeeds.has(insuredNeedIdentity(need, r))
           );
         });
       } catch(e) {}
@@ -3564,7 +3700,8 @@ function renderCustomerList() {
         });
         contractBadges = `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">` +
           [...productToNeeds.entries()].map(([productKey, { needs: ns, r }]) => {
-            const label = ns.map(n => esc((needLabels||{})[n]||n)).join("・");
+            const _u = [...new Set(ns.map(n => esc((needLabels||{})[n]||n)))];
+            const label = _u.join("・") + (ns.length > _u.length ? `（${ns.length}名）` : "");
             const product = r.contract ? esc(r.contract.split("｜").pop().split("（")[0]) : "";
             return `<span style="font-size:10px;background:#d1fae5;color:#065f46;border-radius:10px;padding:2px 8px;font-weight:700">✅ ${label}${product?" · "+product:""}　成約済</span>`;
           }).join("") + `</div>`;
@@ -3614,6 +3751,7 @@ function renderCustomerList() {
 }
 
 function selectCustomer(id) {
+  if (app.customer?.id && app._historyId) autoSave();
   const list = getAllCustomers();
   const c = list.find(x => x.id === id);
   if (!c) return;
@@ -3632,6 +3770,7 @@ function selectCustomer(id) {
   el("age").value = c.age || "";
   if (el("generation")) el("generation").value = c.generation || "";
   el("gender").value = c.gender || "未選択";
+  restoreInsuredEntry(c);
   el("source").value = c.source || "紹介";
   el("meetingStatus").value = c.meetingStatus || "初回面談";
   el("nextMeeting").value = getEffectiveNextMeeting(c) || "";
@@ -3659,11 +3798,14 @@ function selectCustomer(id) {
       sanitizeModeData(getCustomerKind(app.customer));
       app.needs = s.needs || [];
       app.recommendations = s.recommendations || {};
+      app.intentProgress = s.intentProgress || null;
       app._carriedContracts = s._carriedContracts || [];
       app.queue = (s.queueIds || ["contractType"]).map(id => Object.values(questionTemplates).find(q => q.id === id)).filter(Boolean);
       app.index = s.index || 0;
       if (el("intentMemo")) el("intentMemo").value = s.intentMemo || "";
+      if (el("participants")) el("participants").value = s.participants || "";
       if (el("intentPolished")) el("intentPolished").value = s.intentPolished || "";
+      restoreIntentProposal(s);
       app._closingType = s.closingType || "";
       app._printHtmlEdited = s.printHtmlEdited || "";
       if (app._printHtmlEdited && el("printArea")) el("printArea").innerHTML = app._printHtmlEdited;
@@ -3708,7 +3850,9 @@ function selectCustomer(id) {
     app._savedSigns = { customer: "", agent: "" };
     app._savedChecks = {};
     app._printHtmlEdited = "";
-    ["intentMemo","intentPolished","importantMemo","importantPolished","managerName",
+    restoreIntentProposal({});
+    app.intentProgress = null;
+    ["intentMemo","intentPolished","importantMemo","importantPolished","participants","managerName",
      "nextMeetingSign","nextMeetingNote","nextMeetingQuick","nextMeetingQuickNote"].forEach(id => { if (el(id)) el(id).value = ""; });
     document.querySelectorAll("#signPage input[type=checkbox]").forEach(cb => {
       cb.checked = false;
@@ -3760,11 +3904,11 @@ function openHistoryModal(c, hist) {
     const contracted = Object.entries(s.recommendations||{})
       .filter(([,r]) => contractedStatuses.includes(r.status));
     // 今回面談の新規成約（recommendations 内で _carriedContracts に含まれないもの）
-    const carriedNeedsSet = new Set((s._carriedContracts || []).map(c => c.need));
+    const carriedNeedsSet = new Set((s._carriedContracts || []).map(cc => insuredNeedIdentity(cc.need, cc)));
     const isElderlyFirst = isElderlyFirstSession(s, c);
     // 高齢×初回の成約は「要確認」扱い、それ以外が正規成約
-    const newContracted = contracted.filter(([need]) => !carriedNeedsSet.has(need) && !isElderlyFirst);
-    const elderlyContracted = contracted.filter(([need]) => !carriedNeedsSet.has(need) && isElderlyFirst);
+    const newContracted = contracted.filter(([need, r]) => !carriedNeedsSet.has(insuredNeedIdentity(need, r)) && !isElderlyFirst);
+    const elderlyContracted = contracted.filter(([need, r]) => !carriedNeedsSet.has(insuredNeedIdentity(need, r)) && isElderlyFirst);
     // _carriedContracts 自体のバッジも表示（前回成約の引き継ぎ一覧）
     const carriedList = s._carriedContracts || [];
     const hid = s._historyId || s.savedAt || ("idx_"+i);
@@ -3855,6 +3999,7 @@ function updateHistoryInterviewDate(customerId, historyId, newDate) {
 
   const activeSession = hist.find(h => (h._historyId || h.savedAt) === app._historyId);
   if (activeSession) {
+    app.intentProgress = activeSession.intentProgress || null;
     app._printHtmlEdited = activeSession.printHtmlEdited || "";
     if (app._historyId === historyId) {
       app._interviewDate = newDate;
@@ -3887,6 +4032,7 @@ function viewInterviewRecord(customerId, historyId) {
   app.answers = s.answers || {};
   app.needs = s.needs || [];
   app.recommendations = s.recommendations || {};
+  app.intentProgress = s.intentProgress || null;
   app.elderlyCompanion = s.elderlyCompanion || {};
   restoreElderlyCompanionUI(app.elderlyCompanion);
   app._carriedContracts = s._carriedContracts || [];  // ← 引き継ぎ成約を復元
@@ -3898,7 +4044,9 @@ function viewInterviewRecord(customerId, historyId) {
   restoreSignature("customerSign", app._savedSigns.customer);
   restoreSignature("agentSign", app._savedSigns.agent);
   if (el("intentMemo")) el("intentMemo").value = s.intentMemo || "";
+  if (el("participants")) el("participants").value = s.participants || "";
   if (el("intentPolished")) el("intentPolished").value = s.intentPolished || "";
+  restoreIntentProposal(s);
   if (el("managerNeed")) el("managerNeed").value = s.managerNeed || "不要";
   if (el("managerName")) el("managerName").value = s.managerName || "";
   // チェックボックス復元 + app._savedChecksに保持（DOM依存しない）
@@ -3939,7 +4087,7 @@ function viewInterviewRecord(customerId, historyId) {
       };
       // チェックも直接渡す（DOM依存しない）
       const checksToPass = { ...s.checks || {} };
-      generateDocument(signs, checksToPass);
+      if (generateDocument(signs, checksToPass) === false) return;
       showPage("printPage");
       setStatus(`📄 ${customerDisplayName(c)}${customerDisplaySuffix(c)}の面談データを表示しています。`);
     } catch(e) {
@@ -3984,6 +4132,9 @@ function saveCustomer() {
   const isCorporate = customerKind === "corporate";
   const name = isCorporate ? val("corporateName").trim() : val("customerName").trim();
   if (!name) { alert(isCorporate ? "法人名を入力してください" : "お名前を入力してください"); return false; }
+  syncLinkedInsuredDraft();
+  if (insuredEntryMode === "same" && isCorporate && !val("representativeName").trim()) { alert("被保険者が代表者の場合は、代表者名を入力してください。別の方の場合は「別の役員・従業員」を選択してください。"); return false; }
+  if (insuredEntryMode === "different" && !insuredDrafts.some(x=>String(x.name||"").trim())) { alert("契約者と異なる被保険者のお名前を入力してください。"); return false; }
   const list = getAllCustomers();
   const id = app.customer?.id || ("c_" + Date.now());
   const idx = list.findIndex(x => x.id === id);
@@ -3992,6 +4143,10 @@ function saveCustomer() {
     customerKind,
     corporateName: isCorporate ? name : "",
     representativeName: isCorporate ? val("representativeName").trim() : "",
+    schemaVersion: 3,
+    insuredEntryMode,
+    insureds: (insuredDrafts || []).filter(x => String(x.name||"").trim()).map(x => ({...x, confirmed: true})),
+    insuredsStatus: (insuredDrafts || []).some(x => String(x.name||"").trim()) ? "confirmed" : "unconfirmed",
     kana: isCorporate ? "" : val("customerKana"),
     birth: isCorporate ? "" : val("birth"),
     age: isCorporate ? "" : val("age"),
@@ -4004,6 +4159,7 @@ function saveCustomer() {
   if (idx >= 0) list[idx] = c; else list.push(c);
   saveAllCustomers(list);
   app.customer = c;
+  Object.values(app.recommendations || {}).forEach(soleInsuredForRecommendation);
   if (el("nextMeetingQuick")) el("nextMeetingQuick").value = c.nextMeeting || "";
   if (el("nextMeetingSign")) el("nextMeetingSign").value = c.nextMeeting || "";
   if (el("nextMeetingQuickNote")) el("nextMeetingQuickNote").value = c.nextMeetingNote || "";
@@ -4150,8 +4306,8 @@ function continueInterview() {
       if (isElderlyFirstSession(hs, c)) {
         const elFirstNeeds = Object.entries(hs.recommendations || {})
           .filter(([, r]) => r.status === "成約")
-          .map(([need]) => need);
-        if (elFirstNeeds.includes(cc.need)) return false;
+          .map(([need, r]) => insuredNeedIdentity(need, r));
+        if (elFirstNeeds.includes(insuredNeedIdentity(cc.need, cc))) return false;
       }
     }
     return true;
@@ -4163,14 +4319,20 @@ function continueInterview() {
 
   // 前回成約済みは今回提案には混ぜず、既契約参照としてのみ保持する。
   const previousNeeds = uniqueV31([...(cleanedS.needs || []), ...Object.keys(cleanedS.recommendations || {})]);
+  // 前回の提案を今回へ置く。被保険者別の複合キーは、分野を今回の対象に加え、1人目が引き継ぎ済みなら1人目として昇格させる
+  const _placePrevRec = (key, rec) => {
+    const base = needOfKey(key);
+    if (!app.needs.includes(base)) app.needs.push(base);
+    const k = (key !== base && !app.recommendations[base]) ? base : key;
+    app.recommendations[k] = rec;
+  };
   previousNeeds.forEach(need => {
     const r = (cleanedS.recommendations || {})[need] || {};
     if (r.status === "成約") {
       // 高齢×初回面談の成約は引き継がず、今回の提案対象として再提案に回す
       if (prevWasElderlyFirst) {
         setStatus(`⚠ ${needLabels[need]||need}は高齢募集ルールにより前回引き継ぎ対象外です。今回改めてご提案ください。`, "warn");
-        app.needs.push(need);
-        app.recommendations[need] = {
+        _placePrevRec(need, {
           ...r,
           _carried: false,
           status: "未提案",
@@ -4180,15 +4342,17 @@ function continueInterview() {
           notRecommendedReason: "",
           nextAction: "",
           nextDate: ""
-        };
+        });
         return;
       }
-      const alreadyCarried = app._carriedContracts.some(cc => cc.need === need);
+      const alreadyCarried = app._carriedContracts.some(cc => insuredNeedIdentity(cc.need, cc) === insuredNeedIdentity(need, r));
       if (!alreadyCarried) {
         app._carriedContracts.push({
           need,
           label: needLabels[need] || need,
           product: r.contract || r.product || "",
+          insuredId: r.insuredId || "",
+          insuredName: (app.customer?.insureds||[]).find(x=>x.id===r.insuredId)?.name || r.insuredName || "",
           status: r.status,
           previousDate: getSessionInterviewDate(cleanedS)
         });
@@ -4196,24 +4360,28 @@ function continueInterview() {
       return;
     }
 
-    app.needs.push(need);
-    app.recommendations[need] = {
+    _placePrevRec(need, {
       ...r,
       _carried: false,
       status: "未提案",
       memo: "",
+      agentReason: "",
+      customerReason: "",
       compareTargets: "",
       compareAxis: "",
       notRecommendedReason: "",
       nextAction: "",
       nextDate: ""
-    };
+    });
   });
   app.queue = (cleanedS.queueIds || ["contractType"]).map(id => Object.values(questionTemplates).find(q => q.id === id)).filter(Boolean);
   app.index = cleanedS.index || 0;
   // ── 引き継ぎ時：意向確認メモ・整文は新しい面談のために空にする ──
   if (el("intentMemo")) el("intentMemo").value = "";
   if (el("intentPolished")) el("intentPolished").value = "";
+  if (el("participants")) el("participants").value = "";
+  restoreIntentProposal({});
+  app.intentProgress = null;
   // ── 引き継ぎ時：チェックボックスをリセット（新しい面談日の確認として） ──
   ["checkIntent","checkCompare",
    "checkReason","checkPublicMedical","checkImportant","checkElderly","checkElderlyMulti","checkResult", "agentConfirmCheck"].forEach(id => {
@@ -4405,7 +4573,9 @@ function goCustomerPage(clearForm = true, confirmIfSelected = false) {
   if (clearForm && confirmIfSelected && app.customer) {
     if (!confirm(`「${customerDisplayName(app.customer)}${customerDisplaySuffix(app.customer)}」の選択を解除して新規入力画面にしますか？`)) return;
   }
+  if (clearForm && app.customer?.id && app._historyId) autoSave();
   if (clearForm) {
+    deepClearAppSession();
     ["customerName","customerKana","birth","age","generation","nextMeeting"].forEach(id => {
       if (el(id)) el(id).value = "";
     });
@@ -4414,6 +4584,11 @@ function goCustomerPage(clearForm = true, confirmIfSelected = false) {
     if (el("customerKind")) el("customerKind").value = "individual";
     if (el("corporateName")) el("corporateName").value = "";
     if (el("representativeName")) el("representativeName").value = "";
+    insuredDrafts = [];
+    insuredModeCache = {};
+    insuredEntryMode = "same";
+    insuredFormKind = "individual";
+    renderInsuredDrafts();
     if (el("gender")) el("gender").value = "未選択";
     if (el("source")) el("source").value = "紹介";
     if (el("meetingStatus")) el("meetingStatus").value = "初回面談";
@@ -4577,9 +4752,14 @@ function renderQuestion() {
     ).join("");
   }
   if (q.type === "single") {
-    html = q.options.map(value =>
+    const registeredType = app.customer ? (getCustomerKind(app.customer) === "corporate" ? "法人" : "個人") : "";
+    if (q.id === "contractType" && registeredType) {
+      app.answers.contractType = registeredType;
+      html = `<div class="note-box info" style="margin-bottom:10px">登録上の区分：${esc(registeredType)}。区分を変更する場合は顧客登録画面で変更してください。</div>`;
+    }
+    html += q.options.map(value =>
       `<label class="choice-item${app.answers[q.id] === value ? " selected" : ""}">
-        <input type="radio" name="${q.id}" value="${value}" ${app.answers[q.id] === value ? "checked" : ""}>
+        <input type="radio" name="${q.id}" value="${value}" ${app.answers[q.id] === value ? "checked" : ""} ${q.id === "contractType" && registeredType && value !== registeredType ? "disabled" : ""}>
         ${esc(value)}
       </label>`
     ).join("");
@@ -4619,6 +4799,10 @@ const HOJIN_OPTIONAL_IDS = new Set(["hojinScale","hojinConcerns","hojinLoan","ho
 function saveCurrentAnswer() {
   const q = app.queue[app.index];
   if (!q) return true;
+  if (q.id === "contractType" && app.customer) {
+    app.answers.contractType = getCustomerKind(app.customer) === "corporate" ? "法人" : "個人";
+    return true;
+  }
   if (q.type === "multi") {
     app.answers[q.id] = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(x => x.value);
   }
@@ -4783,6 +4967,7 @@ function updateProgress() {
 
 // ──────────────── PRODUCT LOGIC ────────────────
 function productLogic(need) {
+  need = needOfKey(need);
   const a = app.answers;
   const c1 = CONFIG.company1, c2 = CONFIG.company2;
 
@@ -5034,8 +5219,8 @@ function productLogic(need) {
 
   // ── 法人事業保障（hojin_death）──────────────────────────────────
   if (need === "hojin_death") {
-    const loan = app.answers.hojinLoan || "なし";
-    const loanNote = loan !== "なし" ? `借入金（${loan}）に対応した逓減定期保険を優先的にご案内しました。` : "経営者・事業保障を目的とした定期系商品を比較しました。";
+    const loan = app.answers.hojinLoan || "未回答";
+    const loanNote = loan !== "なし" && loan !== "未回答" ? `借入金（${loan}）への備えとして、返済予定に合わせた定期系商品を比較候補として確認します。` : "経営者・事業保障を目的とした定期系商品を比較候補として確認します。";
     return {
       product: `${c1}・${c2}｜法人事業保障`,
       reason: loanNote,
@@ -5081,8 +5266,8 @@ function productLogic(need) {
   if (need === "hojin_retire") {
     const retire = app.answers.hojinRetire || "";
     const retireNote = retire === "準備済みだが不足"
-      ? "既存の退職金準備を補完する観点で、安定準備型・運用型・死亡退職金兼用型を分けて比較しました。"
-      : "退職金準備の開始を目的に、安定準備型・運用型・死亡退職金兼用型を分けて比較しました。";
+      ? "既存の退職金準備を補完する観点で、安定準備型・運用型・死亡退職金兼用型を分けて比較候補として確認します。"
+      : "退職金準備の開始を目的に、安定準備型・運用型・死亡退職金兼用型を分けて比較候補として確認します。";
     return {
       product: `${c1}・${c2}｜役員退職金準備・死亡退職金財源`,
       reason: retireNote,
@@ -5134,8 +5319,8 @@ function productLogic(need) {
   if (need === "hojin_welfare") {
     const successor = app.answers.hojinSuccessor || "";
     const welfareNote = successor === "未定"
-      ? "後継者未定のため、相続・事業承継対策を視野に入れた保障・資金準備を比較しました。"
-      : "福利厚生・弔慰金制度・事業承継を目的とした商品を比較しました。";
+      ? "後継者未定のため、相続・事業承継対策を視野に入れた保障・資金準備を比較候補として確認します。"
+      : "福利厚生・弔慰金制度・事業承継を目的とした商品を比較候補として確認します。";
     return {
       product: `${c1}・${c2}｜福利厚生・事業承継`,
       reason: welfareNote,
@@ -5372,7 +5557,9 @@ function onStatusChange(need, value) {
     if (nextActionEl) nextActionEl.value = "";
     if (nextDateEl) nextDateEl.value = "";
   }
-  if (value === "成約") clearNextMeetingFieldsAndCustomer();
+  if (shouldClearNextMeetingForFinalContract()) clearNextMeetingFieldsAndCustomer();
+  const resultMatrix = el("insuredResultMatrix");
+  if (resultMatrix) resultMatrix.innerHTML = renderInsuredResultMatrix();
   if (nextDateField) nextDateField.style.display = showNext ? "" : "none";
   // 変額・投資性商品用の適合性確認欄を表示/非表示
   const suitBox = document.getElementById("suitabilityBox_" + need);
@@ -5437,20 +5624,84 @@ function isValidCurrentContract(session, customer, status) {
 // 自動保存：明示的な「保存」ボタンなしでも常に最新状態をlocalStorageへ
 function autoSave() {
   if (!app.customer?.id) return;
+  try { checkIntentReview(); } catch (e) {}
   syncNextMeetingToCustomerFromInputs();
-  const state = collectState();
   if (!app._historyId) app._historyId = "h_" + Date.now();
+  const state = collectState();
   state._historyId = app._historyId;
   saveToHistory(app.customer.id, state);
   safeSaveLocalStorage(INTERVIEW_KEY, JSON.stringify(state));
+}
+
+// ──────────────── 被保険者別の提案結果（v40.56） ────────────────
+// 同じ保障分野を複数の被保険者へ提案するとき、2人目以降は「分野#被保険者ID」のキーで別に保存する。
+// 1人目（または1人だけ）は従来どおり「分野」キーのまま。旧データはそのまま読める。
+function _withInsuredKeys(base) {
+  return new Proxy(base, {
+    get(t, k, r) {
+      if (typeof k === "string" && !(k in t) && k.includes("#")) return t[k.split("#")[0]];
+      return Reflect.get(t, k, r);
+    }
+  });
+}
+function needOfKey(k) { return String(k == null ? "" : k).split("#")[0]; }
+function insuredIdOfKey(k) { return String(k == null ? "" : k).split("#")[1] || ""; }
+// 表示上の先頭枠が変わっても、同じ保障・被保険者を識別する。
+function insuredNeedIdentity(key, row) {
+  const id = row?.insuredId || insuredIdOfKey(key);
+  return id ? needOfKey(key) + "#" + id : key;
+}
+function extraKeysOfNeed(need) {
+  return Object.keys(app.recommendations || {}).filter(k => k.startsWith(need + "#"));
+}
+function recKeys() {
+  const out = [];
+  (app.needs || []).forEach(n => { out.push(n); extraKeysOfNeed(n).forEach(k => out.push(k)); });
+  return out;
+}
+function insuredNameOfRec(r) {
+  return (app.customer?.insureds || []).find(x => x.id === r?.insuredId)?.name || r?.insuredName || "";
+}
+function addInsuredRecommendation(need) {
+  const confirmed = (app.customer?.insureds || []).filter(x => x?.confirmed !== false && x.name);
+  const primary = app.recommendations?.[need];
+  if (!primary) return;
+  if (!primary.insuredId) { showToast("先に、最初の提案の被保険者を選択してください", "warn"); return; }
+  const used = new Set([primary.insuredId, ...extraKeysOfNeed(need).map(k => app.recommendations[k]?.insuredId)]);
+  const next = confirmed.find(x => !used.has(x.id));
+  if (!next) { showToast("追加できる被保険者がいません。顧客情報で被保険者を追加してください", "warn"); return; }
+  const base = productLogic(need);
+  app.recommendations[need + "#" + next.id] = { ...base, status: "未提案", memo: "", _carried: false, insuredId: next.id, insuredName: next.name };
+  renderRecommendations();
+  autoSave();
+  showToast("「" + next.name + "」の提案欄を追加しました");
+}
+function removeInsuredRecommendation(key) {
+  if (key === needOfKey(key)) return;
+  if (!confirm("この被保険者の提案内容を削除しますか？")) return;
+  delete app.recommendations[key];
+  renderRecommendations();
+  autoSave();
+}
+function renderInsuredResultMatrix() {
+  const keys = recKeys();
+  const ids = new Set(keys.map(k => app.recommendations[k]?.insuredId || ""));
+  if (keys.length < 2 || ids.size < 2) return "";
+  const rows = keys.map(k => {
+    const r = app.recommendations[k] || {};
+    return `<tr><td>${esc(insuredNameOfRec(r) || "未選択")}</td><td>${esc(needLabels[needOfKey(k)] || k)}</td><td>${esc(r.status || "未提案")}</td></tr>`;
+  }).join("");
+  return `<div class="note-box info" style="margin-bottom:10px"><b>被保険者ごとの結果一覧</b>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px">
+    <thead><tr style="text-align:left"><th>被保険者</th><th>保障分野</th><th>今回の結果</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function buildRecommendations() {
   const prev = app.recommendations || {};
   const activeNeeds = new Set(app.needs || []);
   // v40.10: 保障を外した後に非表示の提案データが履歴へ残り、次回引き継ぎで復活するのを防ぐ
-  Object.keys(app.recommendations || {}).forEach(need => {
-    if (!activeNeeds.has(need)) delete app.recommendations[need];
+  Object.keys(app.recommendations || {}).forEach(key => {
+    if (!activeNeeds.has(needOfKey(key))) delete app.recommendations[key];
   });
   // 引き継ぎ面談では _carriedContracts に前回成約が別管理されているため
   // app.recommendations には今回面談分のみを入れる（前回成約を混入させない）
@@ -5519,30 +5770,35 @@ function renderRecommendations() {
     v1Warning.classList.toggle("hidden", !(customerAge >= 61 && hasV1));
   }
 
-  el("recommendations").innerHTML = needs.map(need => {
+  el("recommendations").innerHTML = '<div id="insuredResultMatrix"></div>' + recKeys().map(key => {
+    const need = needOfKey(key);
     // app.recommendationsを正として使う。productDescのみlogicRで補完
-    const savedR = app.recommendations[need];
+    const savedR = app.recommendations[key];
     const logicR = productLogic(need);
     const r = savedR
       ? { productDesc: logicR.productDesc, contractOptions: logicR.contractOptions, ...savedR }
       : { ...logicR, status: "未提案" };
     // renderのたびにapp.recommendationsを最新に保つ
-    app.recommendations[need] = r;
+    app.recommendations[key] = r;
     if (age >= 70 && mStatus === "初回面談" && r.status === "成約" && !hasValidElderlyCompanion({ elderlyCompanion: app.elderlyCompanion || {} })) {
       r.status = "未提案";
-      app.recommendations[need].status = "未提案";
+      app.recommendations[key].status = "未提案";
     }
 
     const statusOptions = ["未提案","成約","申込意向あり・次回手続き","設計書持ち帰り","家族に相談","次回再提案","今回は見送り"];
     const contractOpts = r.contractOptions || logicR.contractOptions || [];
+    const insuredOpts = Array.isArray(app.customer?.insureds) ? app.customer.insureds.filter(x=>x?.confirmed!==false) : [];
+    soleInsuredForRecommendation(r);
+    const usedByExtras = new Set(key === need ? extraKeysOfNeed(need).map(k => app.recommendations[k]?.insuredId) : []);
+    const insuredSelected = r.insuredId || "";
     const showContract = ["成約","申込意向あり・次回手続き"].includes(r.status||"未提案");
     const isCarried = r._carried;
     return `<div class="rec-card" style="${isCarried ? 'border-left:4px solid #059669;' : ''}">
       <div class="rec-header">
-        <span class="rec-need-label">🛡 ${esc(needLabels[need])}</span>
+        <span class="rec-need-label">🛡 ${esc(needLabels[need])}${key !== need ? `（${esc(insuredNameOfRec(r) || "被保険者")}）` : ""}</span>${key !== need ? `<button type="button" class="btn btn-ghost btn-sm" onclick="removeInsuredRecommendation('${esc(key)}')">この提案を削除</button>` : ""}
         <div style="display:flex;gap:6px;align-items:center">
           ${isCarried ? `<span style="font-size:11px;background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:99px;font-weight:700">✅ 引き継ぎ</span>` : ""}
-          <span class="rec-status-badge" id="badge_${need}" style="${statusColor(r.status||'未提案')}">${esc(r.status||"未提案")}</span>
+          <span class="rec-status-badge" id="badge_${key}" style="${statusColor(r.status||'未提案')}">${esc(r.status||"未提案")}</span>
         </div>
       </div>
       ${isCarried ? `
@@ -5550,11 +5806,19 @@ function renderRecommendations() {
           <b>成約商品：</b>${esc(r.contract || r.product)}<br>
           ${r.memo ? `<span style="color:var(--text-mid)">メモ：${esc(r.memo)}</span>` : ""}
           <div style="margin-top:8px">
-            <button class="btn btn-ghost btn-sm" onclick="unlockCarried('${need}')">🔓 変更する</button>
+            <button class="btn btn-ghost btn-sm" onclick="unlockCarried('${key}')">🔓 変更する</button>
           </div>
         </div>
       ` : `
-      <div class="rec-product">📦 比較・確認商品：${esc(r.product)}</div>
+      <div class="field" style="margin:8px 0;background:#f8fafc;padding:9px 12px;border-radius:8px">
+        <label>👤 被保険者（保障の対象となる方）</label>
+        ${(key!==need && insuredSelected) ? `<div style="font-size:13px;font-weight:600">${esc(insuredNameOfRec(r))}</div>` : insuredOpts.length===1 && insuredSelected===insuredOpts[0].id ? `<div style="font-size:13px;font-weight:600">${esc(insuredOpts[0].name)}${insuredOpts[0].sameAsContractor?"（契約者と同じ）":insuredOpts[0].sameAsRepresentative?"（代表者）":""}</div>` : `<select data-need="${esc(key)}" onchange="setRecommendationInsured('${esc(key)}',this.value)">
+          <option value="">未確認・選択してください</option>
+          ${insuredOpts.map(x=>`<option value="${esc(x.id)}" ${insuredSelected===x.id?'selected':''} ${usedByExtras.has(x.id)?'disabled':''}>${esc(x.name||'氏名未入力')}${x.title?'（'+esc(x.title)+'）':''}${x.relation?'（'+esc(x.relation)+'）':''}</option>`).join('')}
+        </select>`}
+        ${insuredOpts.length===0?'<div style="font-size:11px;color:#92400e;margin-top:4px">顧客登録画面で被保険者を登録すると選択できます。</div>':''}
+      </div>
+      <div class="rec-product">📦 比較・確認商品：${esc(r.product)}${insuredSelected?`<br>👤 被保険者：${esc(insuredOpts.find(x=>x.id===insuredSelected)?.name||'')}`:''}</div>
       <div class="rec-reason">💬 比較・確認ポイント：${esc(customerDecisionSafeTextV1(r.reason))}</div>
       ${need === "cancer" ? `
       <details style="margin-bottom:10px" open>
@@ -5647,19 +5911,19 @@ function renderRecommendations() {
           if (need === "hojin_death") {
             recReason   = loan !== "なし" && loan !== "未回答"
               ? `借入金（${loan}）への備えとして、借入残高の逓減に対応する逓減定期保険と、経営者の万一に備える定期保険系を比較対象として確認します。`
-              : "経営者保障・事業保障ニーズに対応するため、平準定期・ニューエグゼクティブライフ・生前給付型を比較しました。";
+              : "経営者保障・事業保障ニーズに対応するため、平準定期・ニューエグゼクティブライフ・生前給付型を比較候補として確認します。";
             compareView = "保障額、保険期間、保険料水準、解約返戻金の有無、法人目的との適合性（事業保障・借入金対策）";
             caution     = "実際の保険料・経理処理・損金算入可否は各社パンフレット・約款と顧問税理士にご確認ください。";
           } else if (need === "hojin_retire") {
             recReason   = retire === "準備済みだが不足"
-              ? "既存の退職金準備を補完する観点から、安定準備型（養老保険等）・運用型（変額保険等）・死亡退職金兼用型を分けて比較しました。"
-              : "退職金準備の開始を目的に、養老保険系の確実性と変額商品の運用可能性、死亡退職金・事業保障との兼用性を比較しました。";
+              ? "既存の退職金準備を補完する観点から、安定準備型（養老保険等）・運用型（変額保険等）・死亡退職金兼用型を分けて比較候補として確認します。"
+              : "退職金準備の開始を目的に、養老保険系の確実性と変額商品の運用可能性、死亡退職金・事業保障との兼用性を比較候補として確認します。";
             compareView = "満期保険金・死亡保険金の設計、解約返戻金の推移、運用リスクの有無、死亡退職金・弔慰金財源としての適合性、税務上の扱い";
             caution     = "養老保険・定期保険・変額商品の税務取り扱い（資産計上・損金算入・役員報酬との関係）は顧問税理士にご確認ください。変額商品は元本割れリスク・運用方針・費用・適合性確認を必ず説明してください。";
           } else if (need === "hojin_welfare") {
             recReason   = successor === "未定"
               ? "後継者が未定のため、相続・事業承継対策を視野に入れ、終身系・団体定期を比較対象として確認します。"
-              : "福利厚生制度（弔慰金・生存退職金）の整備を目的に、団体定期・養老保険系・終身保険系を比較しました。";
+              : "福利厚生制度（弔慰金・生存退職金）の整備を目的に、団体定期・養老保険系・終身保険系を比較候補として確認します。";
             compareView = "対象者（全従業員・役員のみ）、保険料負担、解約返戻金の活用方法、相続財産としての位置付け";
             caution     = "福利厚生目的の場合、全従業員への普遍的加入など要件確認が必要です。外貨建商品は為替リスクの説明義務があります。詳細はパンフレット・約款と顧問税理士にご確認ください。";
           }
@@ -5667,7 +5931,7 @@ function renderRecommendations() {
             <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:12px 14px;margin:8px 0 10px;font-size:12px;line-height:1.8">
               <div style="font-weight:700;color:#1e40af;margin-bottom:4px">📋 比較説明の参考情報</div>
               <div style="color:#374151;margin-bottom:8px">${esc(recReason)}</div>
-              <div style="font-weight:700;color:#374151;margin-bottom:2px">🔍 比較した主な観点</div>
+              <div style="font-weight:700;color:#374151;margin-bottom:2px">🔍 比較するときの主な観点</div>
               <div style="color:#6b7280;margin-bottom:8px">${esc(compareView)}</div>
               <div style="font-weight:700;color:#b45309;margin-bottom:2px">⚠️ 注意点</div>
               <div style="color:#92400e">${esc(caution)}</div>
@@ -5708,11 +5972,11 @@ function renderRecommendations() {
         const restList = rawList.filter(d => !topList.includes(d));
 
         const renderCard = (d, di, isRest) => {
-          const cardId = `prodcard_${need}_${di}`;
+          const cardId = `prodcard_${key}_${di}`;
           // 詳細ボタンHTML
           const detailBtn = `<button type="button" onclick="event.stopPropagation();openProductDetailByEncodedName('${encodeURIComponent(d.name || "")}', '${encodeURIComponent(d.desc || "")}')" style="flex-shrink:0;padding:3px 10px;background:#fff;border:1.5px solid var(--green);border-radius:20px;color:var(--green-dark);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">▶ 詳細</button>`;
           if (d.variants) {
-            const tabId = `vtab_${need}_${di}`;
+            const tabId = `vtab_${key}_${di}`;
             return `<div style="background:var(--surface2);border:1px solid var(--border-light);border-radius:8px;padding:12px 14px;margin-bottom:8px;font-size:13px;line-height:1.7">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
                 <div style="font-weight:700;color:var(--green-dark)">📌 ${esc(d.name)}</div>
@@ -5748,7 +6012,7 @@ function renderRecommendations() {
       })()}
       <div class="field">
         <label>結果</label>
-        <select id="status_${need}" onchange="onStatusChange('${need}',this.value)">
+        <select id="status_${key}" onchange="onStatusChange('${key}',this.value)">
           ${statusOptions.map(s => {
             const age = Number(app.customer?.age || 0);
             const mStatus = app.customer?.meetingStatus || "";
@@ -5759,22 +6023,22 @@ function renderRecommendations() {
         </select>
       </div>
       <!-- 成約時：商品プルダウン -->
-      <div class="field" id="contractField_${need}" style="${["成約","申込意向あり・次回手続き"].includes(r.status||"未提案")?'':`display:none`}">
+      <div class="field" id="contractField_${key}" style="${["成約","申込意向あり・次回手続き"].includes(r.status||"未提案")?'':`display:none`}">
         <label>✅ 成約した商品・プラン</label>
-        <select id="contract_${need}" data-need="${esc(need)}" onchange="app.recommendations[this.dataset.need].contract=this.value;app.recommendations[this.dataset.need]._contractSel=this.value;const bx=document.getElementById('suitabilityBox_'+this.dataset.need);if(bx)bx.style.display=shouldShowSuitability(this.dataset.need)?'':'none';autoSave()">
+        <select id="contract_${key}" data-need="${esc(key)}" onchange="app.recommendations[this.dataset.need].contract=this.value;app.recommendations[this.dataset.need]._contractSel=this.value;const bx=document.getElementById('suitabilityBox_'+this.dataset.need);if(bx)bx.style.display=shouldShowSuitability(this.dataset.need)?'':'none';autoSave()">
           <option value="">-- 選択してください --</option>
           ${contractOpts.map(o => `<option ${(r.contract||r._contractSel||"")=== o?"selected":""}>${esc(o)}</option>`).join("")}
         </select>
       </div>
       <!-- 成約・申込意向時：保険料入力 -->
-      <div id="premiumField_${need}" style="${["成約","申込意向あり・次回手続き"].includes(r.status||"未提案")?'':`display:none`}">
+      <div id="premiumField_${key}" style="${["成約","申込意向あり・次回手続き"].includes(r.status||"未提案")?'':`display:none`}">
         <div style="background:#f0fdf4;border:1.5px solid var(--green-light);border-radius:10px;padding:14px 16px;margin-bottom:8px">
           <div style="font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:10px">💴 保険料</div>
           <div style="display:flex;gap:12px;flex-wrap:wrap">
             <div style="flex:1;min-width:140px">
               <label style="font-size:12px;color:var(--text-mid);display:block;margin-bottom:4px">当初月払保険料</label>
               <div style="display:flex;align-items:center;gap:6px">
-                <input type="text" inputmode="numeric" id="premiumFirst_${need}" data-need="${esc(need)}"
+                <input type="text" inputmode="numeric" id="premiumFirst_${key}" data-need="${esc(key)}"
                   value="${esc(formatYenValue(r.premiumFirst||""))}"
                   oninput="onPremiumInput(this,'premiumFirst')"
                   placeholder="例：12,500"
@@ -5785,7 +6049,7 @@ function renderRecommendations() {
             <div style="flex:1;min-width:140px">
               <label style="font-size:12px;color:var(--text-mid);display:block;margin-bottom:4px">最終月払保険料 <span style="font-size:11px;font-weight:400;color:var(--text-light)">（特約・割引後）</span></label>
               <div style="display:flex;align-items:center;gap:6px">
-                <input type="text" inputmode="numeric" id="premiumFinal_${need}" data-need="${esc(need)}"
+                <input type="text" inputmode="numeric" id="premiumFinal_${key}" data-need="${esc(key)}"
                   value="${esc(formatYenValue(r.premiumFinal||""))}"
                   oninput="onPremiumInput(this,'premiumFinal')"
                   placeholder="例：11,200"
@@ -5796,7 +6060,7 @@ function renderRecommendations() {
           </div>
           <div style="margin-top:8px">
             <label style="font-size:12px;color:var(--text-mid);display:block;margin-bottom:4px">保険料メモ <span style="font-size:11px;font-weight:400">（払込期間・払込方法・割引内容など）</span></label>
-            <input type="text" id="premiumNote_${need}" data-need="${esc(need)}"
+            <input type="text" id="premiumNote_${key}" data-need="${esc(key)}"
               value="${esc(r.premiumNote||"")}"
               oninput="app.recommendations[this.dataset.need].premiumNote=this.value;clearTimeout(this._t);this._t=setTimeout(autoSave,600)"
               placeholder="例：60歳払済、非喫煙割引適用、年払に変更予定"
@@ -5817,10 +6081,10 @@ function renderRecommendations() {
       </div>
       ${renderSuitabilityCard(need, r)}
       <!-- 申込意向あり・次回手続き時：次回日程入力 -->
-      <div class="field" id="nextDateField_${need}" style="${["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status||"未提案")?'':`display:none`}">
+      <div class="field" id="nextDateField_${key}" style="${["申込意向あり・次回手続き","次回再提案","設計書持ち帰り","家族に相談"].includes(r.status||"未提案")?'':`display:none`}">
         <label>📅 次回アクション・日程</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <select id="nextAction_${need}" data-need="${esc(need)}"
+          <select id="nextAction_${key}" data-need="${esc(key)}"
             onchange="app.recommendations[this.dataset.need].nextAction=this.value;autoSave()"
             style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
             <option value="">-- アクション選択 --</option>
@@ -5831,70 +6095,58 @@ function renderRecommendations() {
             <option ${(r.nextAction||"")==="ご家族への説明"?"selected":""}>ご家族への説明</option>
             <option ${(r.nextAction||"")==="お客様から連絡待ち"?"selected":""}>お客様から連絡待ち</option>
           </select>
-          <input type="date" id="nextDate_${need}" data-need="${esc(need)}"
+          <input type="date" id="nextDate_${key}" data-need="${esc(key)}"
             value="${esc(r.nextDate||"")}"
             onchange="app.recommendations[this.dataset.need].nextDate=this.value;autoSave()"
             style="padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit">
         </div>
       </div>
       <div class="field" style="background:var(--surface2);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px">
-        <label>比較説明とお客様の判断
-          <select onchange="insertCompareTarget('${esc(need)}', this)" style="margin-left:8px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;color:var(--text-mid)">
-            <option value="">📝 定型文...</option>
-            <optgroup label="─ 比較対象 ─">
-              <option value="ひまわり生命・ソニー生命・既契約">ひまわり・ソニー・既契約</option>
-              <option value="ひまわり生命・ソニー生命">ひまわり・ソニー生命</option>
-              <option value="ひまわり生命・既契約">ひまわり・既契約</option>
-              <option value="ソニー生命・既契約">ソニー・既契約</option>
-            </optgroup>
-            <optgroup label="─ 比較軸 ─">
-              <option value="保障内容・保険料・給付条件">保障内容・保険料・給付条件</option>
-              <option value="保障内容・保険料・免責・運用リスク">保障内容・保険料・免責・運用リスク</option>
-              <option value="診断給付・治療給付・保険料">診断給付・治療給付・保険料</option>
-              <option value="保険料・告知条件・保障期間">保険料・告知条件・保障期間</option>
-            </optgroup>
-          </select>
-        </label>
-        <input data-need="${esc(need)}" value="${esc(r.compareTargets||"")}"
-          id="compareTargets_${need}"
+        <label>比較した商品・ポイント</label>
+        <div style="font-size:11px;color:var(--text-mid);margin:4px 0">候補を押すと入力欄に入ります。実際に比較した内容を残してください。</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 8px">
+          ${need === "medical" ? `<button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','targets','ひまわり生命（医療保険）')">ひまわり単体</button>` : `<button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','targets','ひまわり生命・ソニー生命')">ひまわり＋ソニー</button><button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','targets','ソニー生命・既契約')">ソニー＋既契約</button>`}
+          <button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','targets','ひまわり生命・既契約')">ひまわり＋既契約</button>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin:4px 0 8px">
+          <button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','axis','保障内容・保険料・給付条件')">保障・保険料・給付条件</button>
+          <button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','axis','保障内容・保険料・免責・運用リスク')">保障・免責・運用リスク</button>
+          <button type="button" class="chip-btn" onclick="setComparePreset('${esc(key)}','axis','保険料・告知条件・保障期間')">保険料・告知・期間</button>
+        </div>
+        <input data-need="${esc(key)}" value="${esc(r.compareTargets||"")}"
+          id="compareTargets_${key}"
           oninput="app.recommendations[this.dataset.need].compareTargets=this.value;clearTimeout(this._t);this._t=setTimeout(autoSave,800)"
-          placeholder="比較対象：例）ひまわり生命 C3、ソニー生命 SOVANI、既契約" style="margin-bottom:8px">
-        <input data-need="${esc(need)}" value="${esc(r.compareAxis||"")}"
-          id="compareAxis_${need}"
+          placeholder="${need === 'medical' ? '例：ひまわり生命 健康のお守り・既契約' : '実際に比較・確認した商品名、既契約など'}" style="margin-bottom:8px">
+        <input data-need="${esc(key)}" value="${esc(r.compareAxis||"")}"
+          id="compareAxis_${key}"
           oninput="app.recommendations[this.dataset.need].compareAxis=this.value;clearTimeout(this._t);this._t=setTimeout(autoSave,800)"
           placeholder="比較軸：例）保障内容、保険料、給付条件、免責、運用リスク" style="margin-bottom:8px">
       </div>
-      <div class="field">
-        <label>補足メモ
-          <select onchange="insertRecommendationMemo('${esc(need)}', this)" style="margin-left:8px;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;color:var(--text-mid)">
-            <option value="">📝 定型文を挿入...</option>
-            <optgroup label="─ 比較・お客様の選択 ─">
-              <option value="ひまわり生命とソニー生命を比較した上でお客様にご選択いただきました">比較検討の上で選択</option>
-              <option value="複数商品の保障内容・保険料等を比較し、お客様ご自身でこちらの商品を選択されました">比較の上でお客様が決定</option>
-              <option value="お客様はご意向・ご予算との適合性を確認し、こちらの商品を選択されました">意向・予算に合致</option>
-              <option value="他社商品と比較の上、保障内容・保険料ともにご納得いただきました">他社比較・ご納得</option>
-            </optgroup>
-            <optgroup label="─ 次回アクション ─">
-              <option value="ご家族で相談後に改めてご連絡いただきます">ご家族で相談後に連絡</option>
-              <option value="設計書をご持参・ご確認いただきます">設計書を持参・確認</option>
-              <option value="保険証券をご確認の上で比較検討いただきます">保険証券確認・比較検討</option>
-              <option value="健康告知の内容をご確認いただきます">健康告知の確認</option>
-              <option value="お客様のご都合に合わせて再度ご連絡いたします">都合に合わせて再連絡</option>
-              <option value="次回面談にてお手続きを進める予定です">次回面談でお手続き予定</option>
-            </optgroup>
-            <optgroup label="─ 結果 ─">
-              <option value="重要事項・保障内容・保険料についてご説明し、ご理解いただきました">重要事項の説明・理解</option>
-              <option value="今回は見送りのご意向ですが、引き続きご相談を継続いたします">見送り・継続フォロー</option>
-              <option value="高齢募集ルールに基づき、本日は説明のみ実施しました">高齢・本日は説明のみ</option>
-            </optgroup>
-          </select>
-        </label>
-        <textarea data-need="${esc(need)}" oninput="app.recommendations[this.dataset.need].memo=this.value;clearTimeout(this._t);this._t=setTimeout(autoSave,800)" placeholder="補足があればここに...">${esc(r.memo||"")}</textarea>
+      <div class="grid2" style="margin-top:8px">
+        <div class="field"><label>担当者が推奨した理由（推奨した場合）</label><textarea data-need="${esc(key)}" oninput="updateRecommendationField('${esc(key)}','agentReason',this.value)" placeholder="実際に説明した理由だけ入力。推奨していない場合は空欄">${esc(r.agentReason||'')}</textarea></div>
+        <div class="field"><label>お客様が選んだ理由（聞き取った場合）</label><textarea data-need="${esc(key)}" oninput="updateRecommendationField('${esc(key)}','customerReason',this.value)" placeholder="お客様から聞いた言葉・理由を入力。未確認なら空欄">${esc(r.customerReason||'')}</textarea></div>
       </div>
-      ${need === "death" ? renderDeathExtraContracts(need, r) : ""}
+      <div class="btns" style="justify-content:flex-end;margin:6px 0 10px">
+        <button type="button" class="btn btn-ghost btn-sm" onclick="generateRecommendationDraft('${esc(key)}')">✍️ この内容から文章案を作成</button>
+      </div>
+      <div class="field">
+        <label>次回対応・補足（該当するものだけ選択）</label>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin:5px 0 8px">
+          <button type="button" class="chip-btn" onclick="appendRecommendationNote('${esc(key)}','ご家族と相談後に改めて検討予定')">家族と相談</button>
+          <button type="button" class="chip-btn" onclick="appendRecommendationNote('${esc(key)}','設計書を確認後に検討予定')">設計書を確認</button>
+          <button type="button" class="chip-btn" onclick="appendRecommendationNote('${esc(key)}','既契約の保険証券を確認後に比較検討予定')">保険証券を確認</button>
+          <button type="button" class="chip-btn" onclick="appendRecommendationNote('${esc(key)}','健康告知の内容を確認予定')">告知内容を確認</button>
+          <button type="button" class="chip-btn" onclick="appendRecommendationNote('${esc(key)}','今回は説明まで。お客様の選択結果は未確認')">説明のみ・結果未確認</button>
+          <button type="button" class="chip-btn" onclick="appendRecommendationNote('${esc(key)}','今回は見送り（理由は下の欄に記録）')">見送り</button>
+        </div>
+        <textarea id="recommendationMemo_${key}" data-need="${esc(key)}" oninput="app.recommendations[this.dataset.need].memo=this.value;clearTimeout(this._t);this._t=setTimeout(autoSave,800)" placeholder="補足があればここに...">${esc(r.memo||"")}</textarea>
+      </div>
+      ${key === need && need === "death" ? renderDeathExtraContracts(need, r) : ""}
+      ${(key === need && insuredOpts.length >= 2 && extraKeysOfNeed(need).length < insuredOpts.length - 1) ? `<div style="margin-top:8px"><button type="button" class="btn btn-ghost btn-sm" onclick="addInsuredRecommendation('${esc(need)}')">＋ 別の被保険者にも同じ保障を提案する</button></div>` : ""}
       `}
     </div>`;
   }).join("");
+  el("insuredResultMatrix").innerHTML = renderInsuredResultMatrix();
 }
 
 // ──────────────── SAVE/LOAD ────────────────
@@ -5914,7 +6166,7 @@ function collectState() {
     documentCreatedDate: app._documentCreatedDate,
     elderlyCompanion: getElderlyCompanionInfo(),
     queueIds: app.queue.map(q => q.id), index: app.index, recommendations: app.recommendations,    _carriedContracts: app._carriedContracts || [],   // ← 引き継ぎ成約を保存
-    intentMemo: val("intentMemo"), intentPolished: val("intentPolished"),
+    intentMemo: val("intentMemo"), participants: val("participants"), intentPolished: val("intentPolished"), intentPolishedProposal: app._intentPolishedProposal || "", intentProposalBasisHash: app._intentProposalBasisHash || "", intentPolishedHistory: app._intentPolishedHistory || [], intentBasisHash: app._intentBasisHash || "",
     closingType: app._closingType || "",
     importantMemo: val("importantMemo"), importantPolished: val("importantPolished"),
     nextMeetingSign: val("nextMeetingSign") || val("nextMeetingQuick") || "",
@@ -5954,9 +6206,9 @@ function collectState() {
 
 function saveInterview() {
   syncNextMeetingToCustomerFromInputs();
-  const state = collectState();
-  // _historyId を引き継ぐ（新規面談時は新しいIDを付与）
+  // フォームの保存前に面談IDを確定し、意向推移も同じ面談へ保存する。
   if (!app._historyId) app._historyId = "h_" + Date.now();
+  const state = collectState();
   state._historyId = app._historyId;
   // 履歴配列に保存
   if (app.customer?.id) saveToHistory(app.customer.id, state);
@@ -6170,6 +6422,18 @@ function exportAllData() {
 }
 
 // ── 全顧客リストア（バックアップファイルから全件復元） ──
+function mergeImportedCustomer(incoming, existing) {
+  const merged = { ...(existing || {}), ...incoming };
+  if ((!Array.isArray(incoming?.insureds) || incoming.insureds.length === 0)
+      && Array.isArray(existing?.insureds) && existing.insureds.length) {
+    merged.insureds = existing.insureds.map(x => ({...x}));
+    merged.insuredsStatus = existing.insuredsStatus;
+    merged.insuredEntryMode = existing.insuredEntryMode;
+    merged.schemaVersion = existing.schemaVersion;
+  }
+  return merged;
+}
+
 function importAllData(input) {
   const file = input.files[0];
   if (!file) return;
@@ -6191,13 +6455,18 @@ function importAllData(input) {
       const existingList = getAllCustomers();
       backup.customers.forEach(c => {
         const idx = existingList.findIndex(x => x.id === c.id);
-        if (idx >= 0) existingList[idx] = c;
-        else existingList.push(c);
+        const merged = mergeImportedCustomer(c, idx >= 0 ? existingList[idx] : null);
+        if (idx >= 0) existingList[idx] = merged;
+        else existingList.push(merged);
       });
       saveAllCustomers(existingList);
       // 面談履歴を復元
       Object.entries(backup.histories).forEach(([customerId, hist]) => {
         if (hist && hist.length) {
+          const currentCustomer = existingList.find(c => c.id === customerId);
+          hist.forEach(state => {
+            if (state.customer) state.customer = mergeImportedCustomer(state.customer, currentCustomer);
+          });
           localStorage.setItem(historyKey(customerId), JSON.stringify(hist));
           // 後方互換：最新1件をinterviewKeyにも保存
           localStorage.setItem(interviewKey(customerId), JSON.stringify(hist[0]));
@@ -6240,7 +6509,9 @@ function importData(input) {
         const list = getAllCustomers();
         const idx = list.findIndex(x => x.id === s.customer.id);
         if (idx >= 0) {
-          list[idx] = { ...list[idx], ...s.customer };
+          const merged = mergeImportedCustomer(s.customer, list[idx]);
+          list[idx] = merged;
+          s.customer = merged;
         } else {
           list.push(s.customer);
         }
@@ -6275,11 +6546,19 @@ function loadInterview() {
   const raw = localStorage.getItem(INTERVIEW_KEY);
   if (!raw) { setStatus("保存済み面談がありません。", "warn"); return; }
   const s = JSON.parse(raw);
-  app.customer = s.customer; app.answers = s.answers || {};
+  app.customer = patchLegacyCustomer(s.customer); app.answers = s.answers || {};
+  if (app.customer) {
+    const c = app.customer;
+    restoreCustomerKindUI(getCustomerKind(c));
+    const fields = {customerName:c.name,customerKana:c.kana,birth:c.birth,age:c.age,generation:c.generation,gender:c.gender||"未選択",corporateName:c.corporateName,representativeName:c.representativeName,source:c.source||"紹介",meetingStatus:c.meetingStatus||"初回面談"};
+    Object.entries(fields).forEach(([id,value])=>{if(el(id)) el(id).value=value||"";});
+    restoreInsuredEntry(c);
+  }
   app.needs = s.needs || [];
   app.queue = (s.queueIds || ["contractType"]).map(id => Object.values(questionTemplates).find(q => q.id === id)).filter(Boolean);
   app.index = s.index || 0;
   app.recommendations = s.recommendations || {};
+  app.intentProgress = s.intentProgress || null;
   app.elderlyCompanion = s.elderlyCompanion || {};
   restoreElderlyCompanionUI(app.elderlyCompanion);
   app._historyId = s._historyId || s.savedAt || "";
@@ -6294,7 +6573,9 @@ function loadInterview() {
     el("printArea").innerHTML = app._printHtmlEdited;
   }
   el("intentMemo").value = s.intentMemo || "";
+  if (el("participants")) el("participants").value = s.participants || "";
   el("intentPolished").value = s.intentPolished || "";
+  restoreIntentProposal(s);
   el("importantMemo").value = s.importantMemo || "";
   el("importantPolished").value = s.importantPolished || "";
   Object.keys(s.checks || {}).forEach(id => {
@@ -6436,6 +6717,108 @@ function updateLineCharCount() {
   }
 }
 
+let _intentSaveTimer = null;
+function onIntentPolishedInput() {
+  updateLineCharCount();
+  if (!app._intentBasisHash) app._intentBasisHash = intentBasisHash();
+  autoSave();
+  const state = el("intentSaveState");
+  if (state) state.textContent = "保存済み " + new Date().toLocaleTimeString("ja-JP", {hour:"2-digit",minute:"2-digit"});
+}
+
+function pushIntentHistory() {
+  const cur = val("intentPolished");
+  if (!cur || !cur.trim()) return;
+  app._intentPolishedHistory = Array.isArray(app._intentPolishedHistory) ? app._intentPolishedHistory : [];
+  const h = app._intentPolishedHistory;
+  if (h.length && (typeof h[h.length - 1] === "string" ? h[h.length - 1] : h[h.length - 1].text) === cur) return;
+  h.push({ text: cur, basisHash: app._intentBasisHash || "legacy-unverified" });
+  app._intentPolishedHistory = h.slice(-10);
+  updateIntentUndoBtn();
+}
+function updateIntentUndoBtn() {
+  const b = el("intentUndoBtn");
+  if (!b) return;
+  const n = (app._intentPolishedHistory || []).length;
+  b.disabled = n === 0;
+  b.textContent = n ? "↩ 直前の文章に戻す（" + n + "）" : "↩ 直前の文章に戻す";
+}
+function undoIntentPolished() {
+  const h = Array.isArray(app._intentPolishedHistory) ? app._intentPolishedHistory : [];
+  if (!h.length) { setStatus("戻せる文章がありません。", "warn"); return; }
+  const prev = h.pop();
+  app._intentPolishedHistory = h;
+  el("intentPolished").value = typeof prev === "string" ? prev : prev.text;
+  app._intentBasisHash = typeof prev === "string" ? "legacy-unverified" : (prev.basisHash || "legacy-unverified");
+  updateLineCharCount();
+  checkIntentReview();
+  autoSave();
+  updateIntentUndoBtn();
+  if (el("intentSaveState")) el("intentSaveState").textContent = "直前の文章に戻しました";
+}
+function intentBasisHash() {
+  const recs = {};
+  Object.keys(app.recommendations || {}).sort().forEach(k => {
+    const r = app.recommendations[k] || {};
+    const o = {};
+    Object.keys(r).sort().forEach(f => { if (f[0] !== "_") o[f] = r[f]; });
+    recs[k] = o;
+  });
+  return JSON.stringify({ needs: (app.needs || []).slice().sort(), answers: app.answers || {}, insureds: app.customer?.insureds || [], recs });
+}
+function markIntentBasis() {
+  app._intentBasisHash = intentBasisHash();
+  checkIntentReview();
+}
+function checkIntentReview() {
+  const box = el("intentReviewNotice");
+  if (!box) return;
+  const has = !!val("intentPolished").trim();
+  if (!has) { box.classList.add("hidden"); return; }
+  if (!app._intentBasisHash) { app._intentBasisHash = intentBasisHash(); box.classList.add("hidden"); return; }
+  box.classList.toggle("hidden", app._intentBasisHash === intentBasisHash());
+}
+function showIntentProposal(text) {
+  app._intentPolishedProposal = String(text || "");
+  app._intentProposalBasisHash = intentBasisHash();
+  if (el("intentProposal")) el("intentProposal").value = app._intentPolishedProposal;
+  el("intentProposalBox")?.classList.toggle("hidden", !app._intentPolishedProposal);
+  autoSave();
+}
+function discardIntentProposal() {
+  app._intentPolishedProposal = "";
+  app._intentProposalBasisHash = "";
+  if (el("intentProposal")) el("intentProposal").value = "";
+  el("intentProposalBox")?.classList.add("hidden");
+  autoSave();
+}
+function acceptIntentProposal() {
+  if (!app._intentPolishedProposal) return;
+  pushIntentHistory();
+  el("intentPolished").value = app._intentPolishedProposal;
+  app._intentBasisHash = app._intentProposalBasisHash || "legacy-unverified";
+  app._intentPolishedProposal = "";
+  app._intentProposalBasisHash = "";
+  if (el("intentProposal")) el("intentProposal").value = "";
+  el("intentProposalBox")?.classList.add("hidden");
+  updateLineCharCount();
+  checkIntentReview();
+  autoSave();
+  updateIntentUndoBtn();
+  if (el("intentSaveState")) el("intentSaveState").textContent = "新しい文章を保存しました";
+}
+function restoreIntentProposal(state) {
+  app._intentPolishedProposal = state?.intentPolishedProposal || "";
+  app._intentProposalBasisHash = state?.intentProposalBasisHash || "";
+  app._intentPolishedHistory = Array.isArray(state?.intentPolishedHistory) ? state.intentPolishedHistory : [];
+  if (el("intentProposal")) el("intentProposal").value = app._intentPolishedProposal;
+  el("intentProposalBox")?.classList.toggle("hidden", !app._intentPolishedProposal);
+  app._intentBasisHash = state?.intentBasisHash || "";
+  updateIntentUndoBtn();
+  checkIntentReview();
+  if (el("intentSaveState")) el("intentSaveState").textContent = "保存済み文章を表示中";
+}
+
 // ── トースト通知 ──
 function showToast(msg, type = "success") {
   let toast = el("toastNotif");
@@ -6507,6 +6890,8 @@ function patchLegacyCustomer(c) {
     if (!c.representativeName) c.representativeName = "";
   }
   if (!c.customerType)  c.customerType  = "standard";
+  if (!Array.isArray(c.insureds)) c.insureds = [];
+  if (!c.insuredsStatus) c.insuredsStatus = c.insureds.length ? "confirmed" : "unconfirmed";
   if (!c.id)            c.id            = "c_" + Date.now();
   if (!c.name)          c.name          = "";
   if (!c.gender)        c.gender        = "未選択";
@@ -6582,6 +6967,75 @@ function insertCompareTarget(need, selectEl) {
   }
   autoSave();
   selectEl.value = "";
+}
+
+function setRecommendationInsured(need, insuredId) {
+  const r=app.recommendations?.[need]; if(!r) return;
+  r.insuredId=insuredId||"";
+  r.insuredName=(app.customer?.insureds||[]).find(x=>x.id===r.insuredId)?.name||"";
+  autoSave();
+  renderRecommendations();
+}
+function updateRecommendationField(need,key,value) {
+  const r=app.recommendations?.[need]; if(!r) return;
+  r[key]=value; clearTimeout(window._recFieldSaveTimer);
+  window._recFieldSaveTimer=setTimeout(autoSave,500);
+}
+function setComparePreset(need,kind,value) {
+  const r=app.recommendations?.[need]; if(!r) return;
+  const key=kind==="axis"?"compareAxis":"compareTargets";
+  r[key]=value;
+  const input=el((kind==="axis"?"compareAxis_":"compareTargets_")+need);
+  if(input) input.value=value;
+  autoSave();
+}
+function appendRecommendationNote(need,text) {
+  const r=app.recommendations?.[need]; if(!r) return;
+  const ta=el("recommendationMemo_"+need);
+  const current=String(r.memo||"");
+  if(current.includes(text)) return;
+  r.memo=current ? current.replace(/[。\s]*$/,"")+"。"+text : text;
+  if(ta) ta.value=r.memo;
+  autoSave();
+}
+function recommendationRecordText(need, recommendation) {
+  const r = recommendation || {};
+  const lines = [];
+  const insured = (app.customer?.insureds || []).find(x => x.id === r.insuredId);
+  if (insured?.name || r.insuredName) lines.push(`被保険者：${insured?.name || r.insuredName}`);
+  else lines.push("被保険者：未確認");
+  if (r.compareTargets) lines.push(`比較・確認した商品：${r.compareTargets}`);
+  if (r.compareAxis) lines.push(`比較・確認したポイント：${r.compareAxis}`);
+  if (r.agentReason) lines.push(`担当者が推奨した理由：${r.agentReason}`);
+  if (r.customerReason) lines.push(`お客様から聞き取った選択理由：${r.customerReason}`);
+  const status = r.status || "未提案";
+  const valid = isValidCurrentContract({customer: app.customer, elderlyCompanion: app.elderlyCompanion || {}}, app.customer, status);
+  if (["成約", "申込意向あり・次回手続き"].includes(status) && !valid) {
+    lines.push("今回の結果：高齢募集の確認要件が未充足のため、成約・申込意向としては未確定");
+  } else {
+    if (r.contract && valid) lines.push(`選択商品：${r.contract}`);
+    lines.push(`今回の結果：${status}`);
+  }
+  if (["申込意向あり・次回手続き", "次回再提案", "設計書持ち帰り", "家族に相談"].includes(status) && (r.nextAction || r.nextDate)) {
+    lines.push(`次回対応：${r.nextAction || ""}${r.nextDate ? `（${r.nextDate}）` : ""}`);
+  }
+  if (r.memo) lines.push(`補足：${r.memo}`);
+  return `【${needLabels[need] || need}】\n${lines.join("\n")}`;
+}
+
+function generateRecommendationDraft(need) {
+  const r = app.recommendations?.[need];
+  if (!r) return;
+  const addition = recommendationRecordText(need, r);
+  const area = el("intentMemo");
+  const current = area?.value || "";
+  if (area && !current.includes(addition)) {
+    area.value = current.trim() ? current.trim() + "\n\n" + addition : addition;
+    autoSave();
+  }
+  showPage("recordPage");
+  if (area) { area.focus(); area.scrollTop = area.scrollHeight; }
+  setStatus("入力した内容を面談メモへ追加しました。文章を確認してご利用ください。");
 }
 
 function insertRecommendationMemo(need, selectEl) {
@@ -6674,10 +7128,13 @@ function adjustTone(mode) {
       .replace(/確認しました。$/m, "確認しております。");
   }
 
+  if (result === text) { showToast("変更する表現がありませんでした", "warn"); return; }
+  pushIntentHistory();
   el("intentPolished").value = result;
   updateLineCharCount();
+  checkIntentReview();
   autoSave();
-  showToast("✅ トーンを変換しました");
+  showToast("✅ トーンを変換しました（「直前の文章に戻す」で元に戻せます）");
 }
 
 // ── ② 前回内容保持（担当者名・署名テキスト） ──
@@ -6860,7 +7317,7 @@ const yn = id => {
 
 function getCurrentContractedRecommendationsForDoc() {
   const sess = { customer: app.customer };
-  return (app.needs || []).map(need => {
+  return recKeys().map(need => {
     const r = app.recommendations?.[need];
     if (!r || r._carried) return null;
     // 高齢×初回の不正成約は除外
@@ -6942,25 +7399,12 @@ function customerDecisionSafeTextV1(text) {
 
 function buildCustomerDecisionSummaryV1(need, recommendation) {
   const r = recommendation || {};
-  const label = (needLabels || {})[need] || need || "保障";
-  const product = cleanProductNameV31(r.contract || r.product || "選択商品");
-  const axis = r.compareAxis || "保障内容・給付条件・保険料";
-  const target = r.compareTargets || (product ? `「${product}」を含む候補商品` : `${label}の候補商品`);
-  const status = r.status || "未提案";
-  const comparison = `${target}について、${axis}を比較・確認しました。`;
-  if (status === "成約") {
-    return `${comparison}お客様は「${product}」がご自身の意向に合うと判断され、お申し込みを希望されました。`;
-  }
-  if (status === "申込意向あり・次回手続き") {
-    return `${comparison}お客様は「${product}」がご自身の意向に合うと判断され、次回手続きに進むことを希望されました。`;
-  }
-  if (status === "今回は見送り") {
-    return `${comparison}お客様は内容を確認した結果、今回は加入を見送ると判断されました。`;
-  }
-  if (["次回再提案", "設計書持ち帰り", "家族に相談"].includes(status)) {
-    return `${comparison}お客様は内容を確認し、「${statusLabelV31(status)}」と判断されました。`;
-  }
-  return `${comparison}お客様に内容をご確認いただきました。`;
+  const lines = [];
+  if (r.compareTargets) lines.push(`比較・確認した商品：${r.compareTargets}`);
+  if (r.compareAxis) lines.push(`確認ポイント：${r.compareAxis}`);
+  if (r.agentReason) lines.push(`担当者の推奨理由：${r.agentReason}`);
+  if (r.customerReason) lines.push(`お客様の選択理由：${r.customerReason}`);
+  return lines.length ? lines.join(" ／ ") : "比較内容・選択理由は未記入";
 }
 
 function generateDocument(overrideSigns, overrideChecks) {
@@ -7031,7 +7475,7 @@ function generateDocument(overrideSigns, overrideChecks) {
   const contractStatuses = ["成約","申込意向あり・次回手続き"];
 
   // ── 成約した商品のみ抽出 ──
-  const contractedNeeds = app.needs.filter(need => {
+  const contractedNeeds = recKeys().filter(need => {
     const r = app.recommendations[need];
     return r && contractStatuses.includes(r.status);
   });
@@ -7039,7 +7483,7 @@ function generateDocument(overrideSigns, overrideChecks) {
   // ── 今回面談分の保障を「成約・申込意向」と「検討中・見送り・記録」に分類 ──
   // FSA意向確認書の本体は「今回決着した成約・申込意向あり」のみ
   // 次回再提案・見送りは面談記録（別表）として記録
-  const thisSessionNeeds = app.needs.filter(need => {
+  const thisSessionNeeds = recKeys().filter(need => {
     const r = app.recommendations[need];
     return !r || !r._carried; // 前回引き継ぎ成約は除く
   });
@@ -7064,6 +7508,7 @@ function generateDocument(overrideSigns, overrideChecks) {
         const productCell = r.contract
           ? `<b style="color:#065f46;font-size:12px;line-height:1.5">${esc(r.contract)}</b>`
           : `<span style="font-size:12px;line-height:1.5">${esc(r.product || "－")}</span>`;
+        const insuredName = (app.customer?.insureds||[]).find(x=>x.id===r.insuredId)?.name || r.insuredName || "未確認";
         const compareLines = buildComparisonLinesV31(r);
         const compareCell = compareLines.length ? `<br><small style="color:#555">${esc(compareLines.join(" ／ "))}</small>` : "";
         const nextDateCell = (status === "申込意向あり・次回手続き" && r.nextDate)
@@ -7079,7 +7524,7 @@ function generateDocument(overrideSigns, overrideChecks) {
           return `<br><small style="color:#374151;font-weight:600">💴 ${parts.join("　")}</small>`;
         })() : "";
         return `<tr>
-          <td style="width:18%;white-space:nowrap">${esc(needLabels[need])}</td>
+          <td style="width:18%;white-space:nowrap">${esc(needLabels[need])}<br><small>被保険者：${esc(insuredName)}</small></td>
           <td style="width:16%;color:#065f46;font-weight:700;white-space:nowrap">${esc(status)}</td>
           <td style="width:66%;font-size:12px;line-height:1.55">${productCell}${compareCell}${nextDateCell}${premiumCell}</td>
         </tr>`;
@@ -7098,9 +7543,9 @@ function generateDocument(overrideSigns, overrideChecks) {
         const nextDateCell = (r.nextAction || r.nextDate)
           ? `<br><small style="color:#1e40af">次回：${esc(r.nextAction||"")}${r.nextDate?" ("+esc(r.nextDate)+")":""}</small>` : "";
         return `<tr>
-          <td>${esc(needLabels[need])}</td>
+          <td>${esc(needLabels[need])}<br><small>被保険者：${esc((app.customer?.insureds||[]).find(x=>x.id===r.insuredId)?.name || r.insuredName || "未確認")}</small></td>
           <td style="${statusColor}">${esc(status)}</td>
-          <td>${esc(r.product || "－")}${memoCell}${nextDateCell}</td>
+          <td>${esc(r.product || "－")}<br><small>${esc(buildCustomerDecisionSummaryV1(need, r))}</small>${memoCell}${nextDateCell}</td>
         </tr>`;
       }).join("")
     : "";
@@ -7162,7 +7607,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       <div style="font-size:12px;color:#374151;line-height:1.6">
         ${carriedContracts.map(cc => {
           const dateStr = cc.previousDate ? formatJapaneseYmd(cc.previousDate, "前回") : "前回";
-          return `・${esc(cc.product || cc.label || cc.need || "成約済み保険")} <span style="color:#6b7280">（${esc(dateStr)}）</span>`;
+          return `・${esc(cc.product || cc.label || cc.need || "成約済み保険")}${cc.insuredName ? `　被保険者：${esc(cc.insuredName)}` : "　被保険者：未確認"} <span style="color:#6b7280">（${esc(dateStr)}）</span>`;
         }).join("<br>")}
       </div>
     </div>` : "";
@@ -7207,6 +7652,10 @@ function generateDocument(overrideSigns, overrideChecks) {
   }
 
   const isCorporateCustomer = getCustomerKind(c) === "corporate";
+  const participantsText = String(val("participants") || "").trim();
+  const participantsHtml = participantsText
+    ? `<p><b>面談参加者：</b>${esc(participantsText)}</p>`
+    : "";
   const customerInfoHtml = isCorporateCustomer
     ? `<p>
       <b>顧客区分：</b>法人　　
@@ -7232,6 +7681,7 @@ function generateDocument(overrideSigns, overrideChecks) {
       作成日：${formatJapaneseYmd(documentCreatedDate)}
     </p>
     ${customerInfoHtml}
+    ${participantsHtml}
     ${sessionTimelineSection}
     ${carriedSection}
     <div class="print-section print-section-avoid">
@@ -7376,7 +7826,7 @@ function togglePrintEditMode() {
       return;
     }
     if ((el("printArea").textContent || "").includes("まだ生成されていません")) {
-      generateDocument();
+      if (generateDocument() === false) return;
     }
     setPrintEditMode(true);
     setStatus("✏️ 修正モードにしました。本文を修正後、「修正内容を保存」を押してください。");
@@ -7401,15 +7851,17 @@ function clearPrintDocumentEdit() {
     return;
   }
   if (!confirm("保存済みの手修正内容を破棄して、現在の入力内容から意向確認書を作り直します。よろしいですか？")) return;
+  if (typeof intentNavValidate === "function" && !intentNavValidate()) return;
   app._printHtmlEdited = "";
   app._forceRegenerateDocument = true;
-  generateDocument();
+  if (generateDocument() === false) { app._forceRegenerateDocument = false; return; }
   saveInterview();
   setStatus("編集保存を破棄し、意向確認書を再生成しました。");
 }
 
 function forceRegenerateDocument() {
   if (!requireAgentConfirm("再生成")) return;
+  if (typeof intentNavValidate === "function" && !intentNavValidate()) return;
   if (app._printHtmlEdited) {
     const ok = confirm("保存済みの手修正内容があります。再生成すると手修正した文章は上書きされます。\n\n署名画像は保存済みのものを使って再表示します。再生成しますか？");
     if (!ok) {
@@ -7421,7 +7873,7 @@ function forceRegenerateDocument() {
     app._printHtmlEdited = "";
   }
   app._forceRegenerateDocument = true;
-  generateDocument();
+  if (generateDocument() === false) { app._forceRegenerateDocument = false; return; }
   saveInterview();
 }
 
@@ -7458,6 +7910,11 @@ window.addEventListener("load", () => {
   // 他顧客のデータが混入している場合を修正する
   sanitizeAllCarriedContracts();
 
+  ["customerName","birth","gender","representativeName"].forEach(id=>{
+    const input = el(id);
+    if (input) { input.addEventListener("input",syncLinkedInsuredDraft); input.addEventListener("change",syncLinkedInsuredDraft); }
+  });
+  renderInsuredDrafts();
   // 起動時は必ず顧客登録画面から
   showPage("customerPage");
   renderCustomerList();
@@ -7538,7 +7995,7 @@ function normalizeMemoV31(input) {
 }
 
 function getRecommendationLinesV31() {
-  return (app.needs || []).map(need => {
+  return recKeys().map(need => {
     const r = app.recommendations?.[need];
     if (!r) return null;
     const label = needLabels[need] || need;
@@ -7646,9 +8103,9 @@ function inferFactsV31(rawMemo) {
   const recs = currentRecommendationLinesV32();
   const carried = carriedRecommendationLinesV32();
   // _carriedContracts（前回成約）のneedを除外して今回面談分だけを対象にする
-  const carriedNeedSet = new Set((app._carriedContracts || []).map(cc => cc.need));
+  const carriedNeedSet = new Set((app._carriedContracts || []).map(cc => needOfKey(cc.need)));
   const activeNeeds = recs.length
-    ? recs.map(r => r.need).filter(n => !carriedNeedSet.has(n))
+    ? recs.map(r => needOfKey(r.need))
     : (app.needs || []).filter(n => !carriedNeedSet.has(n));
 
   const concerns = [];
@@ -7687,9 +8144,10 @@ function inferFactsV31(rawMemo) {
   if (containsV31(memo, ["毎月", "毎年", "継続", "長期化"])) priorities.push("治療や支出が続く場合に継続的に備えられること");
 
   const comparisons = [];
-  if (containsV31(memo, ["比較", "比べ", "ひまわり", "ソニー", "他社", "複数"]) || recs.length >= 1) {
-    comparisons.push("ひまわり生命・ソニー生命の商品内容を比較");
-  }
+  recs.forEach(r => {
+    if (r.compareTargets) comparisons.push(`比較・確認した商品：${r.compareTargets}`);
+    if (r.compareAxis) comparisons.push(`確認ポイント：${r.compareAxis}`);
+  });
 
   const decisions = [];
   recs.forEach(r => {
@@ -7805,154 +8263,35 @@ function previewPolishFacts() {
   setStatus("🔍 整文前チェックを表示しました。足りない項目があればメモに追記してください。");
 }
 
+function corporateHearingLines() {
+  const a = app.answers || {};
+  const lines = [];
+  const labels = {keiei:"経営者保障",jigyou:"事業保障",kariire:"借入金対策",taishokukin:"退職金準備",fukuri:"福利厚生",souzoku:"相続対策",shokei:"事業承継"};
+  if (a.hojinScale && a.hojinScale !== "未回答") lines.push(`会社規模：${a.hojinScale}`);
+  const concerns = Array.isArray(a.hojinConcerns) ? a.hojinConcerns : [];
+  if (concerns.length) lines.push(`相談内容：${concerns.map(key => labels[key] || key).join("・")}`);
+  [["hojinLoan","借入金"],["hojinRetire","退職金準備"],["hojinSuccessor","後継者"]].forEach(([key,label]) => {
+    if (a[key] && a[key] !== "未回答") lines.push(`${label}：${a[key]}`);
+  });
+  return lines;
+}
+
 function localPolishV31(memo, contractSummary) {
-  const f = inferFactsV31(memo || "");
-  const customer = app.customer || {};
-  const customerName = customer.name ? customer.name + "様" : "お客様";
-  const current = (f.recs || []).filter(r => !r.carried);
-
-  const _polishSess = { customer: app.customer || {}, elderlyCompanion: app.elderlyCompanion || {} };
-  const contracted = current.filter(r =>
-    isValidCurrentContract(_polishSess, app.customer, r.status)
-  );
-  const pending = current.filter(r => ["次回再提案", "設計書持ち帰り", "家族に相談"].includes(r.status));
-  const declined = current.filter(r => r.status === "今回は見送り");
-
-  // ── 提案データなし（質問フローのみ・未提案） ──
-  if (!current.length) {
-    const parts = [];
-    if (f.concerns.length) {
-      parts.push(`${f.concerns.join("・")}についてご関心・ご不安をお持ちでした。本日の面談ではご要望をお聞きし、今後の保障の方向性を確認しました。`);
-    } else {
-      parts.push(`本日の面談ではご要望をお聞きし、今後の保障の方向性を確認しました。`);
-    }
-    return parts.join("\n");
-  }
-
-  // ── 成約なし（次回提案・見送り・検討中のみ） ──
-  if (!contracted.length) {
-    const parts = [];
-    if (f.concerns.length) {
-      parts.push(`${f.concerns.join("・")}についてご不安・ご関心をお持ちでした。`);
-    }
-    // 説明した保障ごとに1文
-    current.forEach(r => {
-      const product = cleanProductNameV31(r.product);
-      const compareSentence = buildComparisonSentenceV31(r);
-      if (compareSentence) parts.push(compareSentence);
-      if (["次回再提案","設計書持ち帰り","家族に相談"].includes(r.status)) {
-        parts.push(`${r.label}については「${product || "比較商品"}」の内容を確認され、${statusLabelV31(r.status)}となりました。`);
-      } else if (r.status === "今回は見送り") {
-        parts.push(`${r.label}については内容を確認いただいたうえで、今回は見送りとなりました。`);
-      } else if (r.status && r.status !== "未提案") {
-        parts.push(`${r.label}については「${product || "比較商品"}」の内容を確認され、${statusLabelV31(r.status)}となりました。`);
-      }
-    });
-    if (f.nextActions.length) {
-      parts.push(`次回対応：${f.nextActions.join("、")}。`);
-    }
-    // 締め文は「見送り」「検討中」「次回提案」がある時だけ付ける（infoは重複するため除外）
-    const ct = detectClosingType();
-    if (ct.type !== "info") {
-      const closing = getClosingByStatus();
-      if (closing) parts.push(closing);
-    }
-    return uniqueV31(parts).join("\n");
-  }
-
-  // ── 成約あり ──
   const parts = [];
-
-  contracted.forEach((r, idx) => {
-    const label = r.label || "保障";
-    const product = cleanProductNameV31(r.product);
-    const isCancer = label.includes("がん");
-    const hasEpithelial = isCancer && (
-      (f.memoPoints || []).some(x => x.includes("上皮内がん")) ||
-      (f.priorities || []).some(x => x.includes("上皮内がん"))
-    );
-
-    // ① 不安・課題（主語なし・直接事実から始める）
-    // 2件目以降は「また、」で区切る
-    const also = idx > 0 ? "また、" : "";
-    let anxietyText = "";
-    if (isCancer && hasEpithelial) {
-      anxietyText = `${also}現在ご加入中のがん保険では上皮内がんが保障対象外である点に不安をお持ちでした。`;
-    } else if (isCancer) {
-      anxietyText = `${also}がん罹患時の治療費や診断時にまとまった資金が必要になることへのご不安がありました。`;
-    } else if (label.includes("医療")) {
-      anxietyText = `${also}入院・手術時の医療費負担への備えが不足していることへのご不安がありました。`;
-    } else if (label.includes("収入") || label.includes("就業")) {
-      anxietyText = `${also}病気やケガで就業不能になった場合の収入減少への備えをご希望でした。`;
-    } else if (label.includes("老後") || label.includes("資産") || label.includes("資金")) {
-      anxietyText = `${also}老後資金の準備と長期的な資産形成についてご関心をお持ちでした。`;
-    } else if (label.includes("介護") || label.includes("認知")) {
-      anxietyText = `${also}将来の介護・認知症状態への備えについてご不安をお持ちでした。`;
-    } else if (label.includes("死亡") || label.includes("収入保障")) {
-      const purpose = app.answers?.deathPurpose || "";
-      const funeral = app.answers?.deathFuneralNeed || "";
-      if (String(purpose).includes("相続")) {
-        anxietyText = `${also}万一の際の相続・資産承継への備えをご希望でした。`;
-      } else if (String(purpose).includes("葬儀") || (funeral && !String(funeral).includes("遺族生活費"))) {
-        anxietyText = `${also}万一の際の葬儀代・整理資金への備えをご希望でした。`;
-      } else {
-        anxietyText = `${also}万一の際のご家族の生活資金への備えをご希望でした。`;
-      }
-    } else {
-      anxietyText = `${also}${label}についてご確認をご希望でした。`;
+  const enteredMemo = String(memo || "").trim();
+  const answers = app.answers || {};
+  const keys = ["cancerPriority", "cancerEpithelial", "medicalPriority", "deathPurpose", "deathFuneralNeed", "deathPeriod", "incomeAmount", "incomePeriod", "assetPurpose", "investmentExperience", "riskTolerance", "retirementConcern", "carePriority"];
+  const recordedAnswers = isCorporateFlowV4010() ? corporateHearingLines() : keys.map(key => answers[key] ? mapAnswerLabelV32(key, answers[key]) : "").filter(Boolean);
+  if (recordedAnswers.length) parts.push(`質問で記録したご希望・確認事項：${uniqueV31(recordedAnswers).join("、")}`);
+  recKeys().forEach(need => {
+    const r = app.recommendations?.[need];
+    if (r && !r._carried) {
+      const block = recommendationRecordText(need, r);
+      if (!enteredMemo.includes(block)) parts.push(block);
     }
-    parts.push(anxietyText);
-
-    // ② 重視点（prioritiesがあれば不安文に続けて1文で補強）
-    const relevantPriorities = (f.priorities || []).filter(p => {
-      if (isCancer) return p.includes("一時金") || p.includes("給付") || p.includes("上皮内");
-      if (label.includes("老後") || label.includes("資産")) return p.includes("リスク") || p.includes("資産") || p.includes("NISA");
-      return false;
-    });
-    if (relevantPriorities.length) {
-      parts.push(`${relevantPriorities.join("・")}を重視されていました。`);
-    }
-
-    // ③ 比較説明（不安→比較の流れで1文に）
-    const axisFromInput = r.compareAxis || "";
-    const defaultAxis = isCancer ? "保障内容および保険料"
-      : (label.includes("老後") || label.includes("資産")) ? "運用方針・積立条件および保険料"
-      : (label.includes("介護") || label.includes("認知")) ? "給付条件・保障範囲および保険料"
-      : "保障内容および保険料";
-    const axis = axisFromInput || defaultAxis;
-    const compareTarget = r.compareTargets
-      ? r.compareTargets
-      : (isCancer ? "ひまわり生命およびソニー生命の該当商品" : "ひまわり生命・ソニー生命の該当商品");
-    parts.push(`${compareTarget}について${axis}を比較説明しました。`);
-
-    // ④ お客様の選択理由（比較軸と意向に基づく判断を記録）
-    const selectionBasis = customerSelectionBasisV31(r, f);
-
-    // ⑤ お客様の申込意向
-    const resultText = r.status === "申込意向あり・次回手続き"
-      ? "次回手続きに進むことを希望されました"
-      : "お申し込みを希望されました";
-
-    // ③〜⑤を1段落にまとめる
-    parts.push(`比較内容を確認した結果、お客様は「${product || "選択商品"}」について${selectionBasis}、${resultText}。`);
   });
-
-  // 次回提案・見送りもあれば記録
-  pending.forEach(r => {
-    const product = cleanProductNameV31(r.product);
-    const compareSentence = buildComparisonSentenceV31(r);
-    if (compareSentence) parts.push(compareSentence);
-    parts.push(`${r.label}については「${product || "比較商品"}」の内容を確認され、${statusLabelV31(r.status)}となりました。`);
-  });
-  declined.forEach(r => {
-    const product = cleanProductNameV31(r.product);
-    parts.push(`${r.label}については内容を確認いただいたうえで、今回は見送りとなりました。`);
-  });
-
-  const closing = getClosingByStatus();
-  if (closing) parts.push(closing);
-
-  return uniqueV31(parts).join("\n");
+  if (enteredMemo) parts.push(enteredMemo);
+  return parts.join("\n\n");
 }
 
 
@@ -8030,7 +8369,9 @@ function selectClosing(type) {
       .replace(/\n?今回はお客様の関心事項.*$/, "")
       .replace(/\n?とのご意向を確認しました。$/, "")
       .trimEnd();
+    pushIntentHistory();
     polished.value = body + "\n" + CLOSING_TEXTS[type];
+    checkIntentReview();
     autoSave();
   }
 
@@ -8078,18 +8419,18 @@ function polishLocally() {
   const hasInterviewData = (app.needs && app.needs.length > 0) || Object.keys(app.answers || {}).length > 0 || Object.keys(app.recommendations || {}).length > 0;
   if (!memo && !hasInterviewData) { setStatus("自動作成に必要な面談データがありません。質問フローまたは比較・結果を入力してください。", "warn"); return; }
 
-  el("intentPolished").value = "";
   setStatus("🔒 比較・選択結果と意向文を自動作成しています...");
 
   const _sess = { customer: app.customer };
-  const contractSummary = (app.needs || []).map(need => {
+  const contractSummary = recKeys().map(need => {
     const r = app.recommendations?.[need];
     if (!r || r._carried) return null;
     const status = r.status || "未提案";
     // 高齢×初回の不正成約は整文の contractSummary に含めない
     if (isValidCurrentContract(_sess, app.customer, status)) {
       const product = r.contract || r.product || "";
-      return `${needLabels[need]}：${status}${product ? "（" + product + "）" : ""}`;
+      const _insN = need !== needOfKey(need) || extraKeysOfNeed(need).length ? insuredNameOfRec(r) : "";
+      return `${needLabels[need]}${_insN ? "（" + _insN + "）" : ""}：${status}${product ? "（" + product + "）" : ""}`;
     }
     return null;
   }).filter(Boolean).join("、");
@@ -8113,21 +8454,29 @@ function polishLocally() {
 
       if (!result || result.trim().length < 10) throw new Error("empty_result");
 
-      el("intentPolished").value = result;
-      autoResizeTextarea(el("intentPolished"));
-      updateLineCharCount();
-      initClosingButtons();
+      let _asProposal = false;
+      if (val("intentPolished").trim()) {
+        showIntentProposal(result);
+        _asProposal = true;
+      } else {
+        el("intentPolished").value = result;
+        autoResizeTextarea(el("intentPolished"));
+        updateLineCharCount();
+        initClosingButtons();
+        markIntentBasis();
+      }
       // 整文完了後はチェック用プレビューを自動で閉じる
       const factBox = el("polishFactPreview");
       if (factBox) factBox.classList.add("hidden");
-      setStatus("✅ 比較・選択結果と意向確認文を自動作成しました。必要に応じて確認・修正してください。");
+      if (_asProposal) setStatus("✅ 新しい文章案を作成しました。現在の文章は保持しています。内容を確認して採用してください。");
+      else setStatus("✅ 比較・選択結果と意向確認文を自動作成しました。必要に応じて確認・修正してください。");
       autoSave();
 
     } catch(e) {
       console.error("local polish v3.1:", e.message);
       const fallback = memo ? normalizeMemoV31(memo) : localPolishV31("", contractSummary);
-      el("intentPolished").value = fallback || memo;
-      updateLineCharCount();
+      if (val("intentPolished").trim()) showIntentProposal(fallback || memo);
+      else { el("intentPolished").value = fallback || memo; updateLineCharCount(); }
       const msg = e.message === "empty_result" ? "自動作成結果が空になりました。比較・結果またはメモをもう少し詳しく入力してください。"
                 : `自動作成中にエラーが発生しました（${e.message}）。フォールバック整形を適用しました。`;
       setStatus("⚠ " + msg, "warn");
@@ -8167,14 +8516,14 @@ function sanitizeAllCarriedContracts() {
           Object.entries(hist[j].recommendations || {}).forEach(([need, r]) => {
             if (!isInvalidElderlyFirstContract(hist[j], c, r.status)) {
               if (["成約", "申込意向あり・次回手続き"].includes(r.status)) {
-                legitimateNeeds.add(need);
+                legitimateNeeds.add(insuredNeedIdentity(need, r));
               }
             }
           });
         }
         // 最古のセッション（i === hist.length-1）より前に成約はないので
         // legitimateNeeds が空 → _carriedContracts は全部不正 → 全除去
-        const cleaned = carried.filter(cc => legitimateNeeds.has(cc.need));
+        const cleaned = carried.filter(cc => legitimateNeeds.has(insuredNeedIdentity(cc.need, cc)));
         if (cleaned.length !== carried.length) {
           changed = true;
           return { ...s, _carriedContracts: cleaned };
@@ -9264,7 +9613,7 @@ function generateDocumentFromSignPage() {
     const checks = collectCurrentChecksForPrint();
     const signs = collectCurrentSignsForPrint();
     app._forceRegenerateDocument = false;
-    generateDocument(signs, checks);
+    if (generateDocument(signs, checks) === false) return;
     showPage("printPage");
     // 生成直後の状態を履歴にも残す。保存後に画面が戻らないよう、最後にprintPageを再指定する。
     try { saveInterview(); } catch(saveErr) { console.warn("save after print generation failed", saveErr); }
@@ -9306,7 +9655,7 @@ function requireAgentConfirm(action) {
 const _origGenerateDocument = generateDocument;
 function generateDocumentGuarded() {
   if (!requireAgentConfirm("意向確認書の生成")) return;
-  generateDocument(...arguments);
+  return generateDocument(...arguments);
 }
 
 // ─── チェックガード付き saveInterview（完了・保存ボタン用） ───
@@ -9341,8 +9690,9 @@ function printDocumentGuarded() {
   if (!app._printHtmlEdited) {
     const wasForce = app._forceRegenerateDocument;
     app._forceRegenerateDocument = true;
-    generateDocument(signs, app._savedChecks || {});
+    const generated = generateDocument(signs, app._savedChecks || {});
     app._forceRegenerateDocument = wasForce;
+    if (generated === false) return;
   } else if (app._printEditMode) {
     // 修正モードのまま印刷された場合は、編集用の枠線などの見た目だけ解除する（本文は保持）
     setPrintEditMode(false);
@@ -9999,7 +10349,8 @@ window.addEventListener("resize", () => {
     const meetingDate = (typeof app !== "undefined" && app._interviewDate)
       || (document.getElementById("interviewDate") || {}).value
       || "undated";
-    return `${customerId}_${meetingDate}`;
+    const sessionId = typeof app !== "undefined" && app._historyId;
+    return `${customerId}_${sessionId || meetingDate}`;
   }
 
   function intentStorageKey() {
@@ -10082,6 +10433,7 @@ window.addEventListener("resize", () => {
 
   function saveIntentProgress() {
     if (!document.getElementById("intentProgressCard")) return;
+    restoreIntentProgress();
     const data = readIntentForm();
     if (typeof app !== "undefined") app.intentProgress = data;
     try {
@@ -10097,15 +10449,14 @@ window.addEventListener("resize", () => {
     const contextKey = intentContextKey();
     if (!force && lastIntentContextKey === contextKey) return;
     let data = null;
-    if (
-      typeof app !== "undefined"
-      && app.intentProgress
-      && app.intentProgress.contextKey === contextKey
-    ) {
-      data = app.intentProgress;
+    if (typeof app !== "undefined" && app.intentProgress) {
+      const saved = app.intentProgress;
+      const legacyKey = `${app.customer?.id || "unsaved"}_${app._interviewDate || "undated"}`;
+      if (saved.contextKey === contextKey || saved.contextKey === legacyKey) data = saved;
     }
     try {
-      const stored = localStorage.getItem(STORAGE_PREFIX + contextKey);
+      // A restored session is authoritative; do not overwrite it with a stale cache.
+      const stored = !data && localStorage.getItem(STORAGE_PREFIX + contextKey);
       if (stored) data = JSON.parse(stored);
     } catch (error) {
       console.warn("意向推移データを読み込めませんでした。", error);
@@ -10256,17 +10607,17 @@ window.addEventListener("resize", () => {
   function currentFinalNeedsText() {
     if (typeof app === "undefined" || !Array.isArray(app.needs)) return "";
     const excludedStatuses = new Set(["今回は見送り", "未提案"]);
-    const activeNeeds = app.needs.filter(need => {
+    const activeNeeds = recKeys().filter(need => {
       const recommendation = app.recommendations && app.recommendations[need];
       return !recommendation || !excludedStatuses.has(recommendation.status || "");
     });
     if (activeNeeds.length) {
-      return activeNeeds
+      return Array.from(new Set(activeNeeds
         .map(need => (typeof needLabels !== "undefined" && needLabels[need]) || need)
-        .filter(Boolean)
+        .filter(Boolean)))
         .join("、");
     }
-    const hasRecordedResult = app.needs.some(need => {
+    const hasRecordedResult = recKeys().some(need => {
       const recommendation = app.recommendations && app.recommendations[need];
       return recommendation && recommendation.status && recommendation.status !== "未提案";
     });
@@ -10280,6 +10631,7 @@ window.addEventListener("resize", () => {
   }
 
   function autoCaptureIntent(stageKey) {
+    restoreIntentProgress();
     const needsText = stageKey === "final" ? currentFinalNeedsText() : currentNeedsText();
     const dateValue = currentMeetingDate();
     const stage = document.getElementById(`intent_${stageKey}_text`);
@@ -10373,6 +10725,12 @@ window.addEventListener("resize", () => {
     document.body.style.overflow = "";
   }
 
+  window.resetIntentProgressForm = function() {
+    lastIntentContextKey = "";
+    writeIntentForm(null);
+    closeIntentModal();
+  };
+
   window.intentNavOpen = function() {
     autoCaptureIntent("initial");
     autoCaptureIntent("final");
@@ -10397,6 +10755,7 @@ window.addEventListener("resize", () => {
   };
 
   window.intentNavSetSavings = function(value) {
+    restoreIntentProgress();
     STAGES.forEach(stage => {
       const node = document.getElementById(`intent_${stage.key}_savings`);
       if (!node) return;
@@ -10483,6 +10842,7 @@ window.addEventListener("resize", () => {
     if (typeof collectState === "function") {
       const originalCollectState = collectState;
       window.collectState = function(...args) {
+        restoreIntentProgress();
         const state = originalCollectState.apply(this, args);
         state.intentProgress = readIntentForm();
         return state;
@@ -10516,7 +10876,7 @@ window.addEventListener("resize", () => {
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    document.title = "意向確認ナビ - 修正版";
+    document.title = "比較・意向確認ナビ v" + APP_VERSION;
     buildIntentCard();
     installIntentHooks();
     const observer = new MutationObserver(() => {
@@ -10531,7 +10891,10 @@ window.addEventListener("resize", () => {
         injectIntentPrintSection();
       }
     });
-    observer.observe(document.body, { attributes: true, subtree: true, attributeFilter: ["class"] });
+    ["recordPage", "printPage"].forEach(id => {
+      const page = document.getElementById(id);
+      if (page) observer.observe(page, { attributes: true, attributeFilter: ["class"] });
+    });
     document.addEventListener("change", () => {
       setTimeout(() => {
         autoCaptureIntent("estimated");
