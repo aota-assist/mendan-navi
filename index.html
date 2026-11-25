@@ -2,7 +2,7 @@
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>比較・意向確認ナビ v40.56｜被保険者入力かんたん版</title>
+<title>比較・意向確認ナビ v40.57｜被保険者入力かんたん版</title>
 <style>
 :root {
   --bg: #f5f2ed;
@@ -325,9 +325,11 @@ body {
   font-size: 15px;
   user-select: none;
 }
-.choice-item:hover { border-color: var(--green); background: var(--green-light); }
+@media (hover: hover) { .choice-item:hover { border-color: var(--green); } }
+.choice-item:focus-within { outline: 2px solid var(--green); outline-offset: 2px; }
 .choice-item.selected { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
 .choice-item input[type=checkbox], .choice-item input[type=radio] {
+  appearance: auto; opacity: 1; margin: 0;
   width: 18px; height: 18px;
   accent-color: var(--green);
   flex-shrink: 0;
@@ -1352,7 +1354,7 @@ body.app-locked .app-body {
       <button class="btn btn-ghost" onclick="prevQuestion()">← 戻る</button>
       <div class="spacer"></div>
       <button class="btn btn-ghost btn-sm" onclick="returnToRecommendationsFromWizard()">提案へ戻る</button>
-      <button class="btn btn-ghost btn-sm" onclick="saveInterview()">💾 途中保存</button>
+      <button class="btn btn-ghost btn-sm" onclick="saveWizardDraft()">💾 途中保存</button>
       <button class="btn btn-primary" onclick="nextQuestion()">次へ →</button>
     </div>
   </section>
@@ -1400,6 +1402,7 @@ body.app-locked .app-body {
     <div id="recommendations"></div>
     <div class="btns">
       <button class="btn btn-primary" onclick="saveInterview()">💾 保存</button>
+      <button class="btn btn-ghost btn-sm" onclick="openWizardPage()">← 質問フローに戻る</button>
       <button class="btn btn-accent btn-sm" onclick="addMoreNeeds()" style="font-size:13px">＋ 保障を追加・変更する</button>
       <button class="btn btn-ghost" onclick="showPage('recordPage')">次へ：録音・整文 →</button>
     </div>
@@ -1890,7 +1893,7 @@ body.app-locked .app-body {
 <script>
 // ──────────────── 設定（保険会社名はここで変更） ────────────────
 // ── アプリバージョン管理（バージョンが変わると旧データを全クリア） ──
-const APP_VERSION = "40.56";
+const APP_VERSION = "40.57";
 const STORED_VERSION_KEY = "ins_nav_app_version";
 
 
@@ -2433,6 +2436,7 @@ function deepClearAppSession(options = {}) {
   app._savedAt = "";
   app._documentCreatedDate = "";
   app._sessionStarted = false;
+  app._addMoreMode = false;
   if (!options.keepCustomer) app.customer = null;
   clearSignatureCanvases();
   resetChecklistDom();
@@ -2525,7 +2529,7 @@ const questionTemplates = {
   },
   mainConcerns: {
     id:"mainConcerns",
-    title:"今、一番心配なことは何ですか？（複数選択可）",
+    title:"今、気になっていることをすべて選んでください。（複数選択可）",
     type:"multi",
     options:[
       ["cancer","がんになった時のこと"],
@@ -2580,7 +2584,7 @@ const questionTemplates = {
   },
   needConfirm: {
     id:"needConfirm",
-    title:"この中で、特に保障が必要と感じるものはどれですか？",
+    title:"今回、詳しく確認したい保障をすべて選んでください。（複数選択可）",
     type:"needs"
   },
   cancerPriority: {
@@ -3792,6 +3796,8 @@ function selectCustomer(id) {
       s = patchLegacyState(s);
       app._historyId = s._historyId || s.savedAt || "";
       app._interviewDate = getSessionInterviewDate(s);
+      app._sessionStarted = canResumeSavedWizard(s);
+      app._addMoreMode = !!s.wizardAddMoreMode;
       app._savedAt = s.savedAt || "";
       app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
       app.answers = s.answers || {};
@@ -4023,8 +4029,8 @@ function viewInterviewRecord(customerId, historyId) {
   // 当時のセッション情報（面談ステータス等）を優先し、顧客マスタで補完
   // → 過去の初回面談を開いた時に現在のステータスで印字されるズレを防ぐ
   app.customer = { ...c, ...(s.customer || {}), id: c.id };
-  // 履歴の閲覧は新規面談の開始ではないため、質問フローへの直接遷移を許可しない。
-  app._sessionStarted = false;
+  app._sessionStarted = canResumeSavedWizard(s);
+  app._addMoreMode = !!s.wizardAddMoreMode;
   app._historyId = s._historyId || s.savedAt || "";
   app._interviewDate = getSessionInterviewDate(s);
   app._savedAt = s.savedAt || "";
@@ -4036,8 +4042,8 @@ function viewInterviewRecord(customerId, historyId) {
   app.elderlyCompanion = s.elderlyCompanion || {};
   restoreElderlyCompanionUI(app.elderlyCompanion);
   app._carriedContracts = s._carriedContracts || [];  // ← 引き継ぎ成約を復元
-  app.queue = [questionTemplates.start, questionTemplates.needConfirm];
-  app.index = 0;
+  app.queue = (s.queueIds || []).map(wizardQuestionById).filter(Boolean);
+  app.index = s.index || 0;
   // サインをapp._savedSignsに保持（canvas非依存で保存・表示できるようにする）
   app._savedSigns = { customer: s.signs?.customer || "", agent: s.signs?.agent || "" };
   clearSignatureCanvases();
@@ -4620,7 +4626,9 @@ function wizardNeedOptionsV4010() {
   const isCorporate = isCorporateFlowV4010();
   if (app._addMoreMode) return isCorporate ? CORPORATE_NEED_KEYS_V4010 : PERSONAL_NEED_KEYS_V4010;
   const derived = isCorporate ? derivedNeedsFromHojin() : derivedNeedsFromConcerns();
-  return derived.length ? derived : (isCorporate ? CORPORATE_NEED_KEYS_V4010 : PERSONAL_NEED_KEYS_V4010);
+  const candidates = derived.length ? derived : (isCorporate ? CORPORATE_NEED_KEYS_V4010 : PERSONAL_NEED_KEYS_V4010);
+  const allowed = isCorporate ? CORPORATE_NEED_KEYS_V4010 : PERSONAL_NEED_KEYS_V4010;
+  return [...new Set([...candidates, ...(app.needs || []).filter(n => allowed.includes(n))])];
 }
 
 function wizardQuestionById(id) {
@@ -4645,9 +4653,6 @@ function buildWizardQueueForCurrentState() {
 
   app.answers.contractType = "個人";
   if (!Array.isArray(app.needs)) app.needs = [];
-  if (!app.needs.length && Array.isArray(app.answers.mainConcerns) && app.answers.mainConcerns.length) {
-    app.needs = derivedNeedsFromConcerns();
-  }
   const q = [questionTemplates.start, questionTemplates.mainConcerns, questionTemplates.needConfirm].filter(Boolean);
   app.needs.forEach(need => {
     (questionsByNeed[need] || []).forEach(qid => {
@@ -4694,6 +4699,11 @@ function normalizeWizardQueueForCurrentState(preferredIndex) {
   return true;
 }
 
+function canResumeSavedWizard(state) {
+  return !!(state?.customer?.id && /^\d{4}-\d{2}-\d{2}$/.test(state.interviewDate || "")
+    && (state.sessionStarted || (state._historyId && state.queueIds?.length > 1)));
+}
+
 function openWizardPage(preferredIndex) {
   if (!app.customer) {
     showPage("customerPage");
@@ -4718,14 +4728,20 @@ function saveCurrentAnswerLoose() {
   if (!q) return;
   if (q.type === "multi") {
     const vals = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(x => x.value);
-    if (vals.length) app.answers[q.id] = vals;
+    app.answers[q.id] = vals;
   } else if (q.type === "single") {
     const sel = document.querySelector(`input[name="${q.id}"]:checked`);
     if (sel) app.answers[q.id] = sel.value;
   } else if (q.type === "needs") {
     const vals = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(x => x.value);
-    if (vals.length) app.needs = vals;
+    app.needs = vals;
   }
+}
+
+function saveWizardDraft() {
+  saveCurrentAnswerLoose();
+  saveInterview();
+  setStatus("質問の選択を途中保存しました。次回は同じ顧客を選び、「質問フロー」から再開できます。");
 }
 
 function returnToRecommendationsFromWizard() {
@@ -4773,6 +4789,9 @@ function renderQuestion() {
         ${esc(needLabels[n] || n)}
       </label>`
     ).join("");
+  }
+  if (q.type === "needs" && app._addMoreMode) {
+    html = '<p class="note-box info">チェックが付いている保障は選択済みです。選択を追加・変更できます。</p>' + html;
   }
   el("questionBody").innerHTML = html;
 
@@ -4913,7 +4932,6 @@ function nextQuestion() {
 
   // ── 個人フロー：mainConcerns ──
   if (q.id === "mainConcerns") {
-    app.needs = derivedNeedsFromConcerns();
     app.queue = [questionTemplates.start, questionTemplates.mainConcerns, questionTemplates.needConfirm];
     app.index = 2; renderQuestion(); return;
   }
@@ -4948,13 +4966,7 @@ function nextQuestion() {
 
 function prevQuestion() {
   // 戻る時はバリデーションなし（答えを変えるために戻るのでエラーを出さない）
-  const q = app.queue[app.index];
-  if (q && q.type === "single") {
-    const sel = document.querySelector(`input[name="${q.id}"]:checked`);
-    if (sel) app.answers[q.id] = sel.value; // 選択済みなら保存だけする
-  } else if (q && q.type === "multi") {
-    app.answers[q.id] = [...document.querySelectorAll(`input[name="${q.id}"]:checked`)].map(x => x.value);
-  }
+  saveCurrentAnswerLoose();
   if (app.index > 0) { app.index--; renderQuestion(); }
 }
 
@@ -5633,7 +5645,7 @@ function autoSave() {
   safeSaveLocalStorage(INTERVIEW_KEY, JSON.stringify(state));
 }
 
-// ──────────────── 被保険者別の提案結果（v40.56） ────────────────
+// ──────────────── 被保険者別の提案結果（v40.57） ────────────────
 // 同じ保障分野を複数の被保険者へ提案するとき、2人目以降は「分野#被保険者ID」のキーで別に保存する。
 // 1人目（または1人だけ）は従来どおり「分野」キーのまま。旧データはそのまま読める。
 function _withInsuredKeys(base) {
@@ -6162,6 +6174,7 @@ function collectState() {
   return {
     customer: app.customer, answers: app.answers, needs: app.needs,
     sessionStarted: !!app._sessionStarted,
+    wizardAddMoreMode: !!app._addMoreMode,
     interviewDate: app._interviewDate,
     documentCreatedDate: app._documentCreatedDate,
     elderlyCompanion: getElderlyCompanionInfo(),
@@ -6562,7 +6575,8 @@ function loadInterview() {
   app.elderlyCompanion = s.elderlyCompanion || {};
   restoreElderlyCompanionUI(app.elderlyCompanion);
   app._historyId = s._historyId || s.savedAt || "";
-  app._sessionStarted = !!s.sessionStarted;
+  app._sessionStarted = canResumeSavedWizard(s);
+  app._addMoreMode = !!s.wizardAddMoreMode;
   app._interviewDate = getSessionInterviewDate(s);
   app._savedAt = s.savedAt || "";
   app._documentCreatedDate = s.documentCreatedDate || app._interviewDate;
